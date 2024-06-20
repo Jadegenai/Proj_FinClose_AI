@@ -274,8 +274,7 @@ def main():
             start_process = st.sidebar.button(":white[Start AP Month End]", type="primary",
                                               key="AP_Month_End")
             if start_process:
-                with st.chat_message("assistant"):
-                    st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
+                st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
                 with st.chat_message("assistant"):
                     st.markdown("Starting the Month End Process")
                     post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
