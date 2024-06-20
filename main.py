@@ -370,6 +370,8 @@ def main():
 
     except Exception as err:
         with st.chat_message("assistant"):
+            if "messages" not in st.session_state.keys():
+                st.session_state.messages = []
             err_msg = "Something Went Wrong - " + str(err)
             st.markdown(err_msg)
             st.session_state.messages.append({"role": "assistant", "content": err_msg})
