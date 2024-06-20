@@ -274,31 +274,39 @@ def main():
             start_process = st.sidebar.button(":white[Start AP Month End]", type="primary",
                                               key="AP_Month_End")
             if start_process:
+                st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
                 st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
-                with st.chat_message("assistant"):
-                    st.markdown("Starting the Month End Process")
-                    post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-                    st.markdown(post_api_responce)
-                    i = 0
-                    while i <= 80:
-                        get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
-                        if get_api_responce == 'New':
-                            st.markdown("The process yet to start. Please wait for sometime to get it started.")
-                            time.sleep(15)
-                            i += 1
-                        elif get_api_responce == 'InProgress':
-                            st.markdown("The process is in progress. Please wait for sometime to get it completed.")
-                            time.sleep(15)
-                            i += 1
-                        elif get_api_responce == 'Successful':
-                            st.markdown("The process has been completed successfully.")
-                            break
-                        elif 'Failed' in get_api_responce:
-                            st.markdown("Unable to get the status of the process. Please check the status manually.")
-                            break
-                        else:
-                            st.markdown(f"Following is the status of the process : {get_api_responce}")
-                            break
+                st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
+                post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
+                st.markdown(post_api_responce)
+                i = 0
+                while i <= 80:
+                    get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
+                    if get_api_responce == 'New':
+                        st.chat_message("assistant").markdown("The process yet to start. Please wait for sometime to get it started.",
+                                                              unsafe_allow_html=True)
+                        time.sleep(15)
+                        i += 1
+                    elif get_api_responce == 'InProgress':
+                        st.chat_message("assistant").markdown(
+                            "The process is in progress. Please wait for sometime to get it completed.",
+                            unsafe_allow_html=True)
+                        time.sleep(15)
+                        i += 1
+                    elif get_api_responce == 'Successful':
+                        st.chat_message("assistant").markdown(
+                            "The process has been completed successfully.",
+                            unsafe_allow_html=True)
+                        st.session_state.messages.append(
+                            {"role": "assistant", "content": "The process has been completed successfully."})
+                        break
+                    elif 'Failed' in get_api_responce:
+                        st.markdown("Unable to get the status of the process. Please check the status manually.")
+                        break
+                    else:
+                        st.markdown(f"Following is the status of the process : {get_api_responce}")
+                        break
 
             ### Add a button to reset the User Chat History
             chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary", key="Clear_Chat_History")
