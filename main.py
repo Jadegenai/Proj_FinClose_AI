@@ -434,12 +434,12 @@ def main():
                             Please click on the below button, I will trigger the process for you.""")
                 start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
                 #dummy
-                st.button(":white[Close AR Period Bot]", type="primary", key="AP_Month_End")
-                st.button(":white[Close PO Module]", type="primary", key="AP_Month_End")
-                st.button(":white[Open All Inventory Period]", type="primary", key="AP_Month_End")
-                st.button(":white[Open AP Period Bot]", type="primary", key="AP_Month_End")
-                st.button(":white[Open AR Period Bot]", type="primary", key="AP_Month_End")
-                st.button(":white[Open PO Module Bot]", type="primary", key="AP_Month_End")
+                st.button(":white[Close AR Period Bot]", type="primary", key="1")
+                st.button(":white[Close PO Module]", type="primary", key="2")
+                st.button(":white[Open All Inventory Period]", type="primary", key="3")
+                st.button(":white[Open AP Period Bot]", type="primary", key="4")
+                st.button(":white[Open AR Period Bot]", type="primary", key="5")
+                st.button(":white[Open PO Module Bot]", type="primary", key="6")
                 if start_process:
                     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
                     # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
