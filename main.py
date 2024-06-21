@@ -257,15 +257,15 @@ def main():
                 llm_selected = st.selectbox("Choose a model :", options=["OpenAI - Gpt 4.0 Turbo", "OpenAI - Gpt 4.o", "OpenAI - Gpt 4.0", "OpenAI - Gpt 3.5 Turbo"])
                 global llm_model_name
                 if llm_selected == "OpenAI - Gpt 4.0 Turbo":
-                    llm_model_name = "gpt-4-turbo"
+                    llm_model_name = "gpt-4"
                 elif llm_selected == "OpenAI - Gpt 4.o":
-                    llm_model_name = "gpt-4o"
+                    llm_model_name = "gpt-4"
                 elif llm_selected == "OpenAI - Gpt 4.0":
                     llm_model_name = "gpt-4"
                 elif llm_selected == "OpenAI - Gpt 3.5 Turbo":
                     llm_model_name = "gpt-3.5-turbo"
                 else:
-                    llm_model_name = "gpt-4-turbo"
+                    llm_model_name = "gpt-4"
 
             # ### Add button to start the month end process
             # start_process = st.sidebar.button(":white[Start AP Month End]", type="primary", key="AP_Month_End")
