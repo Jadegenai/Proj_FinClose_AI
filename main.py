@@ -302,11 +302,11 @@ def main():
             with st.sidebar:
                 select_source = option_menu(menu_title="Menu",
                                             menu_icon="search",
-                                            options=["Query your Data", 'Query for Exception Reports', 'AP Month End Process'],
+                                            options=['Query Financial Data', 'Query Month End Reports', 'AP Month End Process'],
                                             icons=['database', 'filetype-pdf', 'robot'],
                                             default_index=0)
 
-            if select_source == 'Query your Data':
+            if select_source == 'Query Financial Data':
                 ### Setup the Home Page
                 str_input = st.chat_input("Enter your question:")
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
@@ -390,7 +390,7 @@ def main():
                         out_data = df.to_csv(sep=',', index=False) + "<separator>" + sql_result_analysis
                         st.session_state.messages.append({"role": "assistant", "content": out_data})
 
-            elif select_source == 'Query for Exception Reports':
+            elif select_source == 'Query Month End Reports':
                 str_input = st.chat_input("Enter your question:")
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
                 st.markdown("""Welcome! I'm your AI assistant specialized to extract information from exception report insights. 
