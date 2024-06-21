@@ -30,6 +30,7 @@ from streamlit_option_menu import option_menu
 from FewShotSettings import few_shot_settings
 from ZeroShotAnalyzeSettings import zero_shot_analyze_settings
 import UiPath_API_Queue_Load
+import prompts
 
 # Setup the Page
 jadeimage = Image.open("assets/jadeglobalsmall.png")
@@ -223,8 +224,10 @@ def authenticate_user():
 def main():
     try:
         if authenticate_user():
-            his_file_1 = "Chat_History/jade_Chat_History.csv"
+            his_file_1 = "Chat_History/jade_Chat_History_Snow.csv"
+            his_file_2 = "Chat_History/jade_Chat_History_PDF.csv"
             chat_df_1 = chat_history(his_file_1)
+            chat_df_2 = chat_history(his_file_2)
             st.markdown(
                 """
                 <style>
@@ -241,141 +244,223 @@ def main():
 
             if "messages" not in st.session_state.keys():
                 st.session_state.messages = []
+            if "messages1" not in st.session_state.keys():
+                st.session_state.messages1 = []
 
             # Setup the Widgets
             with st.sidebar:
                 st.image('assets/JadeGlobal_BW.png', width=150)
                 st.markdown("<h1 style='text-align: center;'>AI Finance Assistant</h1>", unsafe_allow_html=True)
                 st.write(" \n  \n  \n  \n")
-                llm_selected = st.selectbox("Choose a model :", options=["OpenAI - Gpt 4.0", "OpenAI - Gpt 3.5"])
+
+                ### Add a select box to add scope to choose the model
+                llm_selected = st.selectbox("Choose a model :", options=["OpenAI - Gpt 4.0 Turbo", "OpenAI - Gpt 4.o", "OpenAI - Gpt 4.0", "OpenAI - Gpt 3.5 Turbo"])
                 global llm_model_name
-                if llm_selected == "OpenAI - Gpt 4.0":
+                if llm_selected == "OpenAI - Gpt 4.0 Turbo":
+                    llm_model_name = "gpt-4-turbo"
+                elif llm_selected == "OpenAI - Gpt 4.o":
+                    llm_model_name = "gpt-4o"
+                elif llm_selected == "OpenAI - Gpt 4.0":
                     llm_model_name = "gpt-4"
-                elif llm_selected == "OpenAI - Gpt 3.5":
+                elif llm_selected == "OpenAI - Gpt 3.5 Turbo":
                     llm_model_name = "gpt-3.5-turbo"
                 else:
-                    llm_model_name = "gpt-4"
+                    llm_model_name = "gpt-4-turbo"
 
-            ### Setup the Home Page
-            str_input = st.chat_input("Enter your question:")
-            st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
-            st.markdown("""Welcome! I am Finance Assistant of your company. 
-                        I possess the ability to extract information from your company's financial statements like balance sheet, income statements etc. 
-                        Please ask me questions and I will try my level best to provide accurate responses.""")
+            # ### Add button to start the month end process
+            # start_process = st.sidebar.button(":white[Start AP Month End]", type="primary", key="AP_Month_End")
+            # if start_process:
+            #     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
+            #     # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
+            #     st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
+            #     # st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
+            #     post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
+            #     st.markdown(post_api_responce)
+            #     i = 0
+            #     while i <= 80:
+            #         get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
+            #         if get_api_responce == 'New':
+            #             st.chat_message("assistant").markdown("The process is starting. Please wait for sometime.",unsafe_allow_html=True)
+            #             time.sleep(15)
+            #             i += 1
+            #         elif get_api_responce == 'InProgress':
+            #             st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.",unsafe_allow_html=True)
+            #             time.sleep(15)
+            #             i += 1
+            #         elif get_api_responce == 'Successful':
+            #             st.chat_message("assistant").markdown("The process has been completed successfully.",unsafe_allow_html=True)
+            #             st.session_state.messages.append({"role": "assistant", "content": "The process has been completed successfully."})
+            #             break
+            #         elif 'Failed' in get_api_responce:
+            #             st.markdown("Unable to get the status of the process. Please check the status manually.")
+            #             break
+            #         else:
+            #             st.markdown(f"Following is the status of the process : {get_api_responce}")
+            #             break
 
-            ### Save the User Chat History
-            new_data = {"User_Chat_History": str_input}
-            chat_df_1 = chat_df_1._append(new_data, ignore_index=True)
-            chat_df_1 = chat_df_1.dropna().drop_duplicates()
-            chat_df_1 = chat_df_1.sort_index(axis=0, ascending=False)
-            chat_df_1.to_csv(his_file_1, index=False)
+            ### Add Option menu to select the source
+            with st.sidebar:
+                select_source = option_menu(menu_title="Menu",
+                                            menu_icon="search",
+                                            options=["Query your Data", 'Query for Exception Reports', 'AP Month End Process'],
+                                            icons=['database', 'filetype-pdf', 'robot'],
+                                            default_index=0)
 
-            ### Add button to start the month end process
-            start_process = st.sidebar.button(":white[Start AP Month End]", type="primary",
-                                              key="AP_Month_End")
-            if start_process:
-                st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
-                st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
-                post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-                st.markdown(post_api_responce)
+            if select_source == 'Query your Data':
+                ### Setup the Home Page
+                str_input = st.chat_input("Enter your question:")
+                st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
+                st.markdown("""Welcome! I am Finance Assistant of your company. 
+                            I possess the ability to extract information from your company's financial statements like invoice, balance sheet etc. 
+                            Please ask me questions and I will try my level best to provide accurate responses.""")
+
+                ### Save the User Chat History
+                new_data = {"User_Chat_History": str_input}
+                chat_df_1 = chat_df_1._append(new_data, ignore_index=True)
+                chat_df_1 = chat_df_1.dropna().drop_duplicates()
+                chat_df_1 = chat_df_1.sort_index(axis=0, ascending=False)
+                chat_df_1.to_csv(his_file_1, index=False)
+
+                ### Add a button to reset the User Chat History
+                chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary", key="Clear_Chat_History")
+                if chat_reset:
+                    chat_df = pd.DataFrame(columns=["User_Chat_History"])
+                    chat_df.to_csv(his_file_1, index=False)
+
+                ### Give flexibility to the User to Select from the Chat History
+                with st.sidebar:
+                    for index, row in chat_df_1.iterrows():
+                        if st.button(f"{row['User_Chat_History']}"):
+                            str_input = str(row['User_Chat_History'])
+
+                for message in st.session_state.messages:
+                    with st.chat_message(message["role"]):
+                        role = message["role"]
+                        df_str = message["content"]
+                        if role == "user":
+                            st.markdown(df_str, unsafe_allow_html=True)
+                            continue
+                        if df_str.find("<separator>") > -1:
+                            csv_str = df_str[:df_str.index("<separator>")]
+                            analysis_str = df_str[df_str.index("<separator>") + len("<separator>"):]
+                            csv = StringIO(csv_str)
+                            df_data = pd.read_csv(csv, sep=',')
+                            df_data.columns = df_data.columns.str.replace('_', ' ')
+                            headers = df_data.columns
+                            st.markdown(f'<p style="font-family:sans-serif; font-size:15px">{analysis_str}</p>',
+                                        unsafe_allow_html=True)
+                            if len(df_data.index) >= 2 and len(df_data.columns) >= 2 and len(df_data.columns) <= 3:
+                                with st.expander("Graph:"):
+                                    plot_chart(df_data)
+                            with st.expander("Table Output:"):
+                                st.markdown(
+                                    tabulate(df_data, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                                    unsafe_allow_html=True)
+                        else:
+                            st.markdown(df_str)
+
+                if prompt := str_input:
+                    st.chat_message("user").markdown(prompt, unsafe_allow_html=True)
+                    # Add user message to chat history
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    with st.chat_message("assistant"):
+                        i = 0
+                        while i <= 4:
+                            sql_query = text_to_sql(str_input)
+                            sql_result = run_sql_query(sql_query)
+                            if "Error" not in str(sql_query) and "Error" not in str(sql_result):
+                                break
+                            i += 1
+                        df = pd.DataFrame(sql_result)
+                        df_analysis = str(df)
+                        sql_result_analysis = result_analysis(df_analysis, str_input)
+                        st.markdown(f'<p style="font-family:sans-serif; font-size:15px">{sql_result_analysis}</p>',
+                                    unsafe_allow_html=True)
+                        if len(df.index) >= 1 and len(df.columns) >= 2 and len(df.columns) <= 3:
+                            with st.expander("Graph:"):
+                                plot_chart(df)
+                        if "Error" not in df_analysis:
+                            df.columns = df.columns.str.replace('_', ' ')
+                            headers = df.columns
+                            with st.expander("Table Output:"):
+                                st.markdown(tabulate(df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                                            unsafe_allow_html=True)
+                            with st.expander("The SQL query used for above question is:"):
+                                st.write(sql_query)
+                        out_data = df.to_csv(sep=',', index=False) + "<separator>" + sql_result_analysis
+                        st.session_state.messages.append({"role": "assistant", "content": out_data})
+
+            elif select_source == 'Query for Exception Reports':
+                str_input = st.chat_input("Enter your question:")
+                st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
+                st.markdown("""Welcome! I'm your AI assistant specialized to extract information from exception report insights. 
+                                My purpose is to assist with any queries related to exception reports within your organization.
+                                Please enter your questions in the text box below, or you can choose from the list provided on the left panel.
+                                I'm here to provide accurate responses to your inquiries.""")
+
+                new_data = {"User_Chat_History": str_input}
+                chat_df_2 = chat_df_2._append(new_data, ignore_index=True)
+                chat_df_2 = chat_df_2.dropna().drop_duplicates()
+                chat_df_2 = chat_df_2.sort_index(axis=0, ascending=False)
+                chat_df_2.to_csv(his_file_2, index=False)
+                chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary",
+                                               key="Clear_Chat_History")
+                if chat_reset:
+                    chat_df_2 = pd.DataFrame(columns=["User_Chat_History"])
+                    chat_df_2.to_csv(his_file_2, index=False)
+
+                with st.sidebar:
+                    for index, row in chat_df_2.iterrows():
+                        if st.button(f"{row['User_Chat_History']}"):
+                            str_input = str(row['User_Chat_History'])
+
+                for message in st.session_state.messages:
+                    with st.chat_message(message["role"]):
+                        st.markdown(message["content"], unsafe_allow_html=True)
+
+                if prompt1 := str_input:
+                    st.chat_message("user").markdown(prompt1, unsafe_allow_html=True)
+                    st.session_state.messages.append({"role": "user", "content": prompt1})
+                    with st.chat_message("assistant"):
+                        result = prompts.letter_chain(str_input)
+                        answer = result['result']
+                        st.markdown(answer)
+                        st.session_state.messages.append({"role": "assistant", "content": answer})
+
+            elif select_source == 'AP Month End Process':
+                st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
+                st.markdown("""Welcome! I'm your AI assistant. 
+                            My purpose is to start the AP month end process and check the status for you.
+                            Please click on the below button, I will trigger the process for you.""")
+                start_process = st.button(":white[Start AP Month End Process]", type="primary", key="AP_Month_End")
+                if start_process:
+                    st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
+                    # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
+                    st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
+                    # st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
+                    post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
+                    #st.markdown(post_api_responce)
                 i = 0
                 while i <= 80:
                     get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
                     if get_api_responce == 'New':
-                        st.chat_message("assistant").markdown("The process yet to start. Please wait for sometime to get it started.",
-                                                              unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown("The process is starting. Please wait for sometime.", unsafe_allow_html=True)
                         time.sleep(15)
                         i += 1
                     elif get_api_responce == 'InProgress':
-                        st.chat_message("assistant").markdown(
-                            "The process is in progress. Please wait for sometime to get it completed.",
-                            unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
                         time.sleep(15)
                         i += 1
                     elif get_api_responce == 'Successful':
-                        st.chat_message("assistant").markdown(
-                            "The process has been completed successfully.",
-                            unsafe_allow_html=True)
-                        st.session_state.messages.append(
-                            {"role": "assistant", "content": "The process has been completed successfully."})
+                        st.chat_message("assistant").markdown("The process has been completed successfully.", unsafe_allow_html=True)
+                        st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
-                    elif 'Failed' in get_api_responce:
-                        st.markdown("Unable to get the status of the process. Please check the status manually.")
-                        break
+                    # elif 'Failed' in get_api_responce:
+                    #     st.markdown("Unable to get the status of the process. Please check the status manually.")
+                    #     break
                     else:
-                        st.markdown(f"Following is the status of the process : {get_api_responce}")
+                        #st.markdown(f"Following is the status of the process : {get_api_responce}")
                         break
-
-            ### Add a button to reset the User Chat History
-            chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary", key="Clear_Chat_History")
-            if chat_reset:
-                chat_df = pd.DataFrame(columns=["User_Chat_History"])
-                chat_df.to_csv(his_file_1, index=False)
-
-            ### Give flexibility to the User to Select from the Chat History
-            with st.sidebar:
-                for index, row in chat_df_1.iterrows():
-                    if st.button(f"{row['User_Chat_History']}"):
-                        str_input = str(row['User_Chat_History'])
-
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    role = message["role"]
-                    df_str = message["content"]
-                    if role == "user":
-                        st.markdown(df_str, unsafe_allow_html=True)
-                        continue
-                    if df_str.find("<separator>") > -1:
-                        csv_str = df_str[:df_str.index("<separator>")]
-                        analysis_str = df_str[df_str.index("<separator>") + len("<separator>"):]
-                        csv = StringIO(csv_str)
-                        df_data = pd.read_csv(csv, sep=',')
-                        df_data.columns = df_data.columns.str.replace('_', ' ')
-                        headers = df_data.columns
-                        st.markdown(f'<p style="font-family:sans-serif; font-size:15px">{analysis_str}</p>',
-                                    unsafe_allow_html=True)
-                        if len(df_data.index) >= 2 and len(df_data.columns) >= 2 and len(df_data.columns) <= 3:
-                            with st.expander("Graph:"):
-                                plot_chart(df_data)
-                        with st.expander("Table Output:"):
-                            st.markdown(
-                                tabulate(df_data, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
-                                unsafe_allow_html=True)
-                    else:
-                        st.markdown(df_str)
-
-            if prompt := str_input:
-                st.chat_message("user").markdown(prompt, unsafe_allow_html=True)
-                # Add user message to chat history
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("assistant"):
-                    i = 0
-                    while i <= 4:
-                        sql_query = text_to_sql(str_input)
-                        sql_result = run_sql_query(sql_query)
-                        if "Error" not in str(sql_query) and "Error" not in str(sql_result):
-                            break
-                        i += 1
-                    df = pd.DataFrame(sql_result)
-                    df_analysis = str(df)
-                    sql_result_analysis = result_analysis(df_analysis, str_input)
-                    st.markdown(f'<p style="font-family:sans-serif; font-size:15px">{sql_result_analysis}</p>',
-                                unsafe_allow_html=True)
-                    if len(df.index) >= 1 and len(df.columns) >= 2 and len(df.columns) <= 3:
-                        with st.expander("Graph:"):
-                            plot_chart(df)
-                    if "Error" not in df_analysis:
-                        df.columns = df.columns.str.replace('_', ' ')
-                        headers = df.columns
-                        with st.expander("Table Output:"):
-                            st.markdown(tabulate(df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
-                                        unsafe_allow_html=True)
-                        with st.expander("The SQL query used for above question is:"):
-                            st.write(sql_query)
-                    out_data = df.to_csv(sep=',', index=False) + "<separator>" + sql_result_analysis
-                    st.session_state.messages.append({"role": "assistant", "content": out_data})
 
     except Exception as err:
         with st.chat_message("assistant"):
