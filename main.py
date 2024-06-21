@@ -302,7 +302,7 @@ def main():
             with st.sidebar:
                 select_source = option_menu(menu_title="Menu",
                                             menu_icon="search",
-                                            options=['Query Financial Data', 'Query Month End Reports', 'AP Month End Process'],
+                                            options=['Query Financial Data', 'Query Month End Reports', 'Trigger Month End Bots'],
                                             icons=['database', 'filetype-pdf', 'robot'],
                                             default_index=0)
 
@@ -427,12 +427,19 @@ def main():
                         st.markdown(answer)
                         st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            elif select_source == 'AP Month End Process':
+            elif select_source == 'Trigger Month End Bots':
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
                 st.markdown("""Welcome! I'm your AI assistant. 
                             My purpose is to start the AP month end process and check the status for you.
                             Please click on the below button, I will trigger the process for you.""")
-                start_process = st.button(":white[Start AP Month End Process]", type="primary", key="AP_Month_End")
+                start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
+                #dummy
+                st.button(":white[Close AR Period Bot]", type="primary", key="AP_Month_End")
+                st.button(":white[Close PO Module]", type="primary", key="AP_Month_End")
+                st.button(":white[Open All Inventory Period]", type="primary", key="AP_Month_End")
+                st.button(":white[Open AP Period Bot]", type="primary", key="AP_Month_End")
+                st.button(":white[Open AR Period Bot]", type="primary", key="AP_Month_End")
+                st.button(":white[Open PO Module Bot]", type="primary", key="AP_Month_End")
                 if start_process:
                     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
                     # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
