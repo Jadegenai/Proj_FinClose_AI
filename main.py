@@ -267,37 +267,6 @@ def main():
                 else:
                     llm_model_name = "gpt-4"
 
-            # ### Add button to start the month end process
-            # start_process = st.sidebar.button(":white[Start AP Month End]", type="primary", key="AP_Month_End")
-            # if start_process:
-            #     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
-            #     # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
-            #     st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
-            #     # st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
-            #     post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-            #     st.markdown(post_api_responce)
-            #     i = 0
-            #     while i <= 80:
-            #         get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
-            #         if get_api_responce == 'New':
-            #             st.chat_message("assistant").markdown("The process is starting. Please wait for sometime.",unsafe_allow_html=True)
-            #             time.sleep(15)
-            #             i += 1
-            #         elif get_api_responce == 'InProgress':
-            #             st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.",unsafe_allow_html=True)
-            #             time.sleep(15)
-            #             i += 1
-            #         elif get_api_responce == 'Successful':
-            #             st.chat_message("assistant").markdown("The process has been completed successfully.",unsafe_allow_html=True)
-            #             st.session_state.messages.append({"role": "assistant", "content": "The process has been completed successfully."})
-            #             break
-            #         elif 'Failed' in get_api_responce:
-            #             st.markdown("Unable to get the status of the process. Please check the status manually.")
-            #             break
-            #         else:
-            #             st.markdown(f"Following is the status of the process : {get_api_responce}")
-            #             break
-
             ### Add Option menu to select the source
             with st.sidebar:
                 select_source = option_menu(menu_title="Menu",
@@ -433,41 +402,47 @@ def main():
                             My purpose is to start the AP month end process and check the status for you.
                             Please click on the below button, I will trigger the process for you.""")
                 start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
-                #dummy
+                #Dummy Buttons
                 st.button(":white[Close AR Period Bot]", type="primary", key="1")
                 st.button(":white[Close PO Module]", type="primary", key="2")
                 st.button(":white[Open All Inventory Period]", type="primary", key="3")
                 st.button(":white[Open AP Period Bot]", type="primary", key="4")
                 st.button(":white[Open AR Period Bot]", type="primary", key="5")
                 st.button(":white[Open PO Module Bot]", type="primary", key="6")
+                #End of Dummy Buttons
                 if start_process:
                     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
-                    # st.session_state.messages.append({"role": "user", "content": "Start AP Month End Process"})
-                    st.chat_message("assistant").markdown("Starting the AP Month End Process", unsafe_allow_html=True)
-                    # st.session_state.messages.append({"role": "assistant", "content": "Starting the AP Month End Process"})
-                    post_api_responce = UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-                    #st.markdown(post_api_responce)
+                    st.chat_message("assistant").markdown("The AP Month End Process is being Started", unsafe_allow_html=True)
+                    UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
                 i = 0
+                previous_progress = ""
                 while i <= 80:
-                    get_api_responce = UiPath_API_Queue_Load.read_status_in_queue()
-                    if get_api_responce == 'New':
-                        st.chat_message("assistant").markdown("The process is starting. Please wait for sometime.", unsafe_allow_html=True)
-                        time.sleep(15)
-                        i += 1
-                    elif get_api_responce == 'InProgress':
-                        st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
-                        time.sleep(15)
-                        i += 1
-                    elif get_api_responce == 'Successful':
+                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                    if queue_item_status in ('New', 'InProgress'):
+                        if queue_item_progress is None and previous_progress != "None":
+                            st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
+                            previous_progress = "None"
+                            time.sleep(15)
+                            i += 1
+                        elif queue_item_progress != previous_progress and queue_item_progress != "":
+                            st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
+                            previous_progress = queue_item_progress
+                            time.sleep(15)
+                            i += 1
+                        else:
+                            previous_progress = queue_item_progress
+                            time.sleep(15)
+                            i += 1
+                    elif queue_item_status == 'Successful':
                         st.chat_message("assistant").markdown("The process has been completed successfully.", unsafe_allow_html=True)
                         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
-                    # elif 'Failed' in get_api_responce:
-                    #     st.markdown("Unable to get the status of the process. Please check the status manually.")
-                    #     break
                     else:
-                        #st.markdown(f"Following is the status of the process : {get_api_responce}")
-                        break
+                        st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
+                        time.sleep(15)
+                        i += 1
+                        #break
 
     except Exception as err:
         with st.chat_message("assistant"):
