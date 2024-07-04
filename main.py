@@ -438,11 +438,11 @@ def main():
                         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
                     else:
-                        st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
-                        st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                        time.sleep(15)
-                        i += 1
-                        #break
+                        # st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
+                        # st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
+                        # time.sleep(15)
+                        # i += 1
+                        break
 
     except Exception as err:
         with st.chat_message("assistant"):
