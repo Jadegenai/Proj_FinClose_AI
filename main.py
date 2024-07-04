@@ -424,7 +424,7 @@ def main():
                             previous_progress = "None"
                             time.sleep(15)
                             i += 1
-                        elif queue_item_progress != previous_progress and queue_item_progress != "":
+                        elif queue_item_progress != previous_progress and queue_item_progress is not None:
                             st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
                             previous_progress = queue_item_progress
                             time.sleep(15)
@@ -434,7 +434,7 @@ def main():
                             time.sleep(15)
                             i += 1
                     elif queue_item_status == 'Successful':
-                        st.chat_message("assistant").markdown("The process has been completed successfully.", unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown("All the processes related to Month End Process have completed successfully.", unsafe_allow_html=True)
                         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
                     else:
