@@ -22,8 +22,8 @@ UiPath_Client_Id = os.getenv("UiPath_Client_Id")
 UiPath_User_Key = os.getenv("UiPath_User_Key")
 UiPath_File_Id = os.getenv("UiPath_File_Id")
 orchestrator_url = 'https://cloud.uipath.com'
-queue_item_id=''
-oauth_token=''
+queue_item_id = ""
+oauth_token = ""
 
 def get_oauth_token():
     auth_url = f'{orchestrator_url}/identity_/connect/token'
@@ -82,11 +82,12 @@ def read_status_in_queue():
         }
         get_response = requests.get(get_queue_item_url, headers=get_queue_item_headers)
         if get_response.status_code == 200:
-            queue_item_status = get_response.json()
-            queue_item_status = queue_item_status['Status']
-            return queue_item_status.strip()
+            queue_item_response = get_response.json()
+            queue_item_status = queue_item_response['Status']
+            queue_item_progress = queue_item_response['Progress']
+            return queue_item_status, queue_item_progress
         else:
-            return f"Failed to connect to the queue: {get_response.status_code} {get_response.text}"
+            return "Failed to connect to the queue:", f"{get_response.status_code} {get_response.text}"
 
     except Exception as err:
-        return f"Failed to get queue item status: {err}"
+        return "Failed to get queue item status:", f"{err}"
