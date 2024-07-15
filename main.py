@@ -11,7 +11,6 @@ import os
 import time
 from dotenv import load_dotenv
 import pandas as pd
-from PIL import Image
 import streamlit as st
 from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -247,6 +246,32 @@ def main():
             if "messages1" not in st.session_state.keys():
                 st.session_state.messages1 = []
 
+            # Workflow Status
+            if 'button1' not in st.session_state:
+                st.session_state.button1 = 0
+            if 'button2' not in st.session_state:
+                st.session_state.button2 = 0
+            if 'button3' not in st.session_state:
+                st.session_state.button3 = 0
+            if 'button4' not in st.session_state:
+                st.session_state.button4 = 0
+            if 'button5' not in st.session_state:
+                st.session_state.button5 = 0
+            if 'button6' not in st.session_state:
+                st.session_state.button6 = 0
+            if 'button7' not in st.session_state:
+                st.session_state.button7 = 0
+            if 'button8' not in st.session_state:
+                st.session_state.button8 = 0
+            if 'button9' not in st.session_state:
+                st.session_state.button9 = 0
+            if 'button10' not in st.session_state:
+                st.session_state.button10 = 0
+            if 'button11' not in st.session_state:
+                st.session_state.button11 = 0
+            if 'button12' not in st.session_state:
+                st.session_state.button12 = 0
+
             # Setup the Widgets
             with st.sidebar:
                 st.image('assets/JadeGlobal_BW.png', width=150)
@@ -402,14 +427,6 @@ def main():
                             My purpose is to start the AP month end process and check the status for you.
                             Please click on the below button, I will trigger the process for you.""")
                 start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
-                #Dummy Buttons
-                st.button(":white[Close AR Period Bot]", type="primary", key="1")
-                st.button(":white[Close PO Module]", type="primary", key="2")
-                st.button(":white[Open All Inventory Period]", type="primary", key="3")
-                st.button(":white[Open AP Period Bot]", type="primary", key="4")
-                st.button(":white[Open AR Period Bot]", type="primary", key="5")
-                st.button(":white[Open PO Module Bot]", type="primary", key="6")
-                #End of Dummy Buttons
                 if start_process:
                     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
                     st.chat_message("assistant").markdown("The AP Month End Process is being Started", unsafe_allow_html=True)
@@ -424,7 +441,7 @@ def main():
                             previous_progress = "None"
                             time.sleep(15)
                             i += 1
-                        elif queue_item_progress != previous_progress and queue_item_progress is not None:
+                        elif queue_item_progress != previous_progress and queue_item_progress != "":
                             st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
                             previous_progress = queue_item_progress
                             time.sleep(15)
@@ -434,15 +451,289 @@ def main():
                             time.sleep(15)
                             i += 1
                     elif queue_item_status == 'Successful':
-                        st.chat_message("assistant").markdown("All the processes related to Month End Process have completed successfully.", unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown("The process has been completed successfully.", unsafe_allow_html=True)
                         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
                     else:
-                        # st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
-                        # st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                        # time.sleep(15)
-                        # i += 1
+                        #st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
+                        #st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
                         break
+
+                # Workflow buttons
+                # Create a horizontal layout with columns
+                col1, col2, col3 = st.columns(3)
+                # First horizontal layout
+                with col1:
+                    # Create a container for the buttons
+                    with st.container(border=True):
+                        st.subheader("Workday -3", divider='rainbow')
+                        # First Button
+                        st.markdown(":grey-background[**Create Accounting**]")
+                        if st.session_state.button1 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button1 == 1:
+                            if st.button("RERUN 🔄", key="Create_Accounting_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button1 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Create_Accounting_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button1 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                    with st.container(border=True):
+                        st.subheader("Workday 1", divider='rainbow')
+                        # First Button
+                        st.markdown(":grey-background[**GL Transfer**]")
+                        if st.session_state.button2 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button2 == 1:
+                            if st.button("RERUN 🔄", key="GL_Transfer_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button2 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="GL_Transfer_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button2 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                        # Second Button
+                        st.markdown(":grey-background[**Trial Balance Report**]")
+                        if st.session_state.button3 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button3 == 1:
+                            if st.button("RERUN 🔄", key="Trial_Balance_Report_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button3 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Trial_Balance_Report_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button3 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                # Second horizontal layout
+                with col2:
+                    # Create a container for the buttons
+                    with st.container(border=True):
+                        st.subheader("Workday -2", divider='rainbow')
+                        # First Button
+                        st.markdown(":grey-background[**Accounting Reconciliation**]")
+                        if st.session_state.button4 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button4 == 1:
+                            if st.button("RERUN 🔄", key="Accounting_Reconciliation_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button4 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Accounting_Reconciliation_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button4 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        # Second Button
+                        st.markdown(":grey-background[**IT Accrual check**]")
+                        if st.session_state.button5 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button5 == 1:
+                            if st.button("RERUN 🔄", key="IT_Accrual_check_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1,
+                                                      text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button5 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="IT_Accrual_check_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1,
+                                                      text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button5 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                    with st.container(border=True):
+                        st.subheader("Workday 2", divider='rainbow')
+                        # First Button
+                        st.markdown(":grey-background[**Inventory Recon**]")
+                        if st.session_state.button6 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button6 == 1:
+                            if st.button("RERUN 🔄", key="Inventory_Recon_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button6 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Inventory_Recon_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button6 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                        # Second Button
+                        st.markdown(":grey-background[**Invoice Aging Check**]")
+                        if st.session_state.button7 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button7 == 1:
+                            if st.button("RERUN 🔄", key="Invoice_Aging_Check_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button7 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Invoice_Aging_Check_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button7 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                        # Third Button
+                        st.markdown(":grey-background[**Tax and Treasury Analysis**]")
+                        if st.session_state.button8 == 1:
+                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                        if st.session_state.button8 == 1:
+                            if st.button("RERUN 🔄", key="Tax_and_Treasury_Analysis_RERUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button8 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                        else:
+                            if st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button8 = 1
+                                my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                    # Third horizontal layout
+                    with col3:
+                        with st.container(border=True):
+                            st.subheader("Workday -1", divider='rainbow')
+                            # First Button
+                            st.markdown(":grey-background[**Open PO and GL period**]")
+                            if st.session_state.button9 == 1:
+                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.session_state.button9 == 1:
+                                if st.button("RERUN 🔄", key="Open_PO_and_GL_period_RERUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button9 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                if st.button("RUN ▶️", key="Open_PO_and_GL_period_RUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button9 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                            # Second Button
+                            st.markdown(":grey-background[**Unaccounted transaction check**]")
+                            if st.session_state.button10 == 1:
+                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.session_state.button10 == 1:
+                                if st.button("RERUN 🔄", key="Unaccounted_transaction_check_RERUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button10 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                if st.button("RUN ▶️", key="Unaccounted_transaction_check_RUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button10 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                            # Third Button
+                            st.markdown(":grey-background[**Exception Correction**]")
+                            if st.session_state.button11 == 1:
+                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.session_state.button11 == 1:
+                                if st.button("RERUN 🔄", key="Exception_Correction_RERUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button11 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                if st.button("RUN ▶️", key="Exception_Correction_RUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button11 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+
+                        with st.container(border=True):
+                            st.subheader("Workday 3", divider='rainbow')
+                            # First Button
+                            st.markdown(":grey-background[**Close Period**]")
+                            if st.session_state.button12 == 1:
+                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.session_state.button12 == 1:
+                                if st.button("RERUN 🔄", key="Close_Period_RERUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button12 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                            else:
+                                if st.button("RUN ▶️", key="Close_Period_RUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button12 = 1
+                                    my_bar31.success('The Process has completed successfully!', icon="✅")
 
     except Exception as err:
         with st.chat_message("assistant"):
