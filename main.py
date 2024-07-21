@@ -41,6 +41,10 @@ api_key = os.getenv("OpenAI_Secret_Key")
 st_UserName = os.getenv("Streamlit_User_Name")
 st_Password = os.getenv("Streamlit_User_Credential")
 llm_model_name = ""
+year_selected = ""
+month_selected = ""
+prev_month = ""
+
 
 # Class Few Shot Prompt for Text to SQL
 class few_shot_prompt_utility:
@@ -274,12 +278,163 @@ def main():
 
             # Setup the Widgets
             with st.sidebar:
-                st.image('assets/jadeglobalbig.png', width=250)
+                st.image('assets/jadeglobalbig.png', width=200)
                 st.markdown("<h1 style='text-align: center;'>AI Finance Assistant</h1>", unsafe_allow_html=True)
                 st.write(" \n  \n  \n  \n")
 
+            ### Add Option menu to select the source
+            with st.sidebar:
+                select_source = option_menu(menu_title="Menu",
+                                            menu_icon="list",
+                                            options=['Dashboard', 'Query Financial Data', 'Query Month End Reports', 'Trigger Month End Bots'],
+                                            icons=['graph-up-arrow', 'database', 'filetype-pdf', 'robot'],
+                                            default_index=0)
+
+            if select_source == 'Dashboard':
+                st.title("Dashboard :")
+                # Selling Data
+                selling_sql_qry = """SELECT
+                                        SELLING_YEAR||' '||SELLING_MONTH AS SELLING_YEAR_MONTH,
+                                        SELLING_COST
+                                    FROM DB_DEV.SC_COINBASE.SELLING_COST 
+                                    ORDER BY SELLING_YEAR, 
+                                    CASE SELLING_MONTH
+                                        WHEN 'January' THEN 1
+                                        WHEN 'February' THEN 2
+                                        WHEN 'March' THEN 3
+                                        WHEN 'April' THEN 4
+                                        WHEN 'May' THEN 5
+                                        WHEN 'June' THEN 6
+                                    END;"""
+                selling_sql_result = run_sql_query(selling_sql_qry)
+                selling_df = pd.DataFrame(selling_sql_result)
+                selling_df[['Year', 'MonthName']] = selling_df['SELLING_YEAR_MONTH'].str.split(expand=True)
+                selling_df['Year'] = selling_df['Year'].astype(int)
+                selling_df.columns = selling_df.columns.str.replace('_', ' ')
+                # Buying Data
+                buying_sql_qry = """SELECT
+                                        BUYING_YEAR||' '||BUYING_MONTH AS BUYING_YEAR_MONTH,
+                                        BUYING_COST
+                                    FROM DB_DEV.SC_COINBASE.BUYING_COST 
+                                    ORDER BY BUYING_YEAR, 
+                                    CASE BUYING_MONTH
+                                        WHEN 'January' THEN 1
+                                        WHEN 'February' THEN 2
+                                        WHEN 'March' THEN 3
+                                        WHEN 'April' THEN 4
+                                        WHEN 'May' THEN 5
+                                        WHEN 'June' THEN 6
+                                    END;"""
+                buying_sql_result = run_sql_query(buying_sql_qry)
+                buying_df = pd.DataFrame(buying_sql_result)
+                buying_df[['Year', 'MonthName']] = buying_df['BUYING_YEAR_MONTH'].str.split(expand=True)
+                buying_df['Year'] = buying_df['Year'].astype(int)
+                buying_df.columns = buying_df.columns.str.replace('_', ' ')
+                # Distinct Year and Month List
+                year_list = list(buying_df.Year.unique())[::-1]
+                month_list = list(buying_df.MonthName.unique())
+                # DSO Data
+                dso_sql_qry = "SELECT AMOUNT, TYPE FROM DB_DEV.SC_COINBASE.DSO ORDER BY TYPE;"
+                dso_sql_result = run_sql_query(dso_sql_qry)
+                dso_df = pd.DataFrame(dso_sql_result)
+                dso_df.columns = dso_df.columns.str.replace('_', ' ')
+                # Outstanding Receivables Data
+                out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DB_DEV.SC_COINBASE.OUTSTANDING_RECEIVABLES;"
+                out_sql_result = run_sql_query(out_sql_qry)
+                out_df = pd.DataFrame(out_sql_result)
+                out_df.columns = out_df.columns.str.replace('_', ' ')
+
+                # Dashboard Main Panel
+                col = st.columns((3), gap='medium')
+                # First Column
+                with col[0]:
+                    global year_selected
+                    year_selected = st.selectbox("Select a year :", options = year_list)
+                # Second Column
+                with col[1]:
+                    global month_selected, prev_month
+                    month_selected = st.selectbox("Select a month :", options = month_list)
+                    if month_selected == 'January':
+                        prev_month = 'January'
+                    elif month_selected == 'February':
+                        prev_month = 'January'
+                    elif month_selected == 'March':
+                        prev_month = 'February'
+                    elif month_selected == 'April':
+                        prev_month = 'March'
+                    elif month_selected == 'May':
+                        prev_month = 'April'
+                    elif month_selected == 'June':
+                        prev_month = 'May'
+                # Third Column
+                with col[2]:
+                    st.markdown('')
+                    st.markdown('')
+                    st.markdown('')
+                    st.markdown('')
+                    st.markdown('')
+
+                with col[0]:
+                    st.subheader("Selling Cost:", divider='rainbow')
+                    # Metric Graph
+                    curr_sell_df = \
+                        selling_df[(selling_df['Year'] == year_selected) & (selling_df['MonthName'] == month_selected)][
+                            'SELLING COST'].to_frame().reset_index(drop=True)
+                    curr_sell_data = curr_sell_df.loc[0, 'SELLING COST']
+                    prev_sell_df = \
+                        selling_df[(selling_df['Year'] == year_selected) & (selling_df['MonthName'] == prev_month)][
+                            'SELLING COST'].to_frame().reset_index(drop=True)
+                    prev_sell_data = prev_sell_df.loc[0, 'SELLING COST']
+                    sell_data_diff = str(round((((curr_sell_data - prev_sell_data) / prev_sell_data) * 100), 2)) + '%'
+                    st.metric(label=str(year_selected) + " " + str(month_selected), value=round(curr_sell_data,2),
+                              delta=sell_data_diff)
+                    # Bar Graph
+                    fig = px.bar(selling_df, x=selling_df.columns[0], y=selling_df.columns[1], color=selling_df.columns[1])
+                    st.plotly_chart(fig, width=0, height=300, use_container_width=True)
+
+                with col[1]:
+                    st.subheader("Buying Cost:", divider='rainbow')
+                    # Metric Graph
+                    curr_buy_df = \
+                        buying_df[(buying_df['Year'] == year_selected) & (buying_df['MonthName'] == month_selected)][
+                            'BUYING COST'].to_frame().reset_index(drop=True)
+                    curr_buy_data = curr_buy_df.loc[0, 'BUYING COST']
+                    prev_buy_df = \
+                        buying_df[(buying_df['Year'] == year_selected) & (buying_df['MonthName'] == prev_month)][
+                            'BUYING COST'].to_frame().reset_index(drop=True)
+                    prev_buy_data = prev_buy_df.loc[0, 'BUYING COST']
+                    buy_data_diff = str(round((((curr_buy_data - prev_buy_data) / prev_buy_data) * 100), 2)) + '%'
+                    st.metric(label=str(year_selected) + " " + str(month_selected), value=round(curr_buy_data,2),
+                              delta=buy_data_diff)
+                    # Bar Graph
+                    fig = px.bar(buying_df, x=buying_df.columns[0], y=buying_df.columns[1],
+                                 color=buying_df.columns[1])
+                    st.plotly_chart(fig, width=0, height=300, use_container_width=True)
+
+                with col[2]:
+                    st.subheader("Outstanding Amount:", divider='rainbow')
+                    headers = out_df.columns
+                    st.markdown(tabulate(out_df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                                unsafe_allow_html=True)
+
+                    st.subheader("DSO:", divider='rainbow')
+                    fig = px.pie(dso_df, names='TYPE', values='AMOUNT', title='DSO')
+                    st.plotly_chart(fig)
+                    headers = dso_df.columns
+                    st.markdown(tabulate(dso_df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                            unsafe_allow_html=True)
+
+            elif select_source == 'Query Financial Data':
+                ### Setup the Home Page
+                str_input = st.chat_input("Enter your question:")
+                st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
+                st.markdown("""Welcome! I am Finance Assistant of your company. 
+                            I possess the ability to extract information from your company's financial statements like invoice, balance sheet etc. 
+                            Please ask me questions and I will try my level best to provide accurate responses.""")
                 ### Add a select box to add scope to choose the model
-                llm_selected = st.selectbox("Choose a model :", options=["OpenAI - Gpt 4.0 Turbo", "OpenAI - Gpt 4.o", "OpenAI - Gpt 4.0", "OpenAI - Gpt 3.5 Turbo"])
+                llm_selected = st.selectbox("Choose a model :",
+                                            options=["OpenAI - Gpt 4.0 Turbo", "OpenAI - Gpt 4.o", "OpenAI - Gpt 4.0",
+                                                     "OpenAI - Gpt 3.5 Turbo"])
                 global llm_model_name
                 if llm_selected == "OpenAI - Gpt 4.0 Turbo":
                     llm_model_name = "gpt-4"
@@ -291,22 +446,6 @@ def main():
                     llm_model_name = "gpt-3.5-turbo"
                 else:
                     llm_model_name = "gpt-4"
-
-            ### Add Option menu to select the source
-            with st.sidebar:
-                select_source = option_menu(menu_title="Menu",
-                                            menu_icon="search",
-                                            options=['Query Financial Data', 'Query Month End Reports', 'Trigger Month End Bots'],
-                                            icons=['database', 'filetype-pdf', 'robot'],
-                                            default_index=0)
-
-            if select_source == 'Query Financial Data':
-                ### Setup the Home Page
-                str_input = st.chat_input("Enter your question:")
-                st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
-                st.markdown("""Welcome! I am Finance Assistant of your company. 
-                            I possess the ability to extract information from your company's financial statements like invoice, balance sheet etc. 
-                            Please ask me questions and I will try my level best to provide accurate responses.""")
 
                 ### Save the User Chat History
                 new_data = {"User_Chat_History": str_input}
@@ -391,6 +530,20 @@ def main():
                                 My purpose is to assist with any queries related to exception reports within your organization.
                                 Please enter your questions in the text box below, or you can choose from the list provided on the left panel.
                                 I'm here to provide accurate responses to your inquiries.""")
+                ### Add a select box to add scope to choose the model
+                llm_selected = st.selectbox("Choose a model :",
+                                            options=["OpenAI - Gpt 4.0 Turbo", "OpenAI - Gpt 4.o", "OpenAI - Gpt 4.0",
+                                                     "OpenAI - Gpt 3.5 Turbo"])
+                if llm_selected == "OpenAI - Gpt 4.0 Turbo":
+                    llm_model_name = "gpt-4"
+                elif llm_selected == "OpenAI - Gpt 4.o":
+                    llm_model_name = "gpt-4"
+                elif llm_selected == "OpenAI - Gpt 4.0":
+                    llm_model_name = "gpt-4"
+                elif llm_selected == "OpenAI - Gpt 3.5 Turbo":
+                    llm_model_name = "gpt-3.5-turbo"
+                else:
+                    llm_model_name = "gpt-4"
 
                 new_data = {"User_Chat_History": str_input}
                 chat_df_2 = chat_df_2._append(new_data, ignore_index=True)
