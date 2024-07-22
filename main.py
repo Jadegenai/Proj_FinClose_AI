@@ -589,12 +589,12 @@ def main():
                 while i <= 80:
                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                     if queue_item_status in ('New', 'InProgress'):
-                        if queue_item_progress is None and previous_progress != "None":
+                        if queue_item_progress is None and previous_progress is not None:
                             st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
-                            previous_progress = "None"
+                            previous_progress = None
                             time.sleep(15)
                             i += 1
-                        elif queue_item_progress != previous_progress and queue_item_progress != "":
+                        elif queue_item_progress != previous_progress and queue_item_progress is not None:
                             st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
                             previous_progress = queue_item_progress
                             time.sleep(15)
@@ -604,7 +604,7 @@ def main():
                             time.sleep(15)
                             i += 1
                     elif queue_item_status == 'Successful':
-                        st.chat_message("assistant").markdown("The process has been completed successfully.", unsafe_allow_html=True)
+                        st.chat_message("assistant").markdown("All the processes related to AP month end process have been completed successfully.", unsafe_allow_html=True)
                         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
                         break
                     else:
