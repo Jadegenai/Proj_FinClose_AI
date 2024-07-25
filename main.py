@@ -719,7 +719,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -751,7 +751,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -781,7 +781,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -816,7 +816,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -891,7 +891,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -967,7 +967,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(1.2)
+                                            time.sleep(2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
@@ -997,7 +997,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(1.2)
+                                            time.sleep(2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
