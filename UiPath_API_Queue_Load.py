@@ -59,7 +59,8 @@ def add_data_to_queue(api_command):
             "Name": UiPath_Queue_Name,
             "SpecificContent": {
                 "ApiCommand@odata.type": "#String",
-                "ApiCommand": api_command
+                "ApiCommand": "FinClose_AI",
+                "ProcessName": api_command
             }
         }
     }

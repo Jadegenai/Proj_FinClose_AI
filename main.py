@@ -1,10 +1,12 @@
 #####################################################################################################
-# Python Module for Gen AI Solutions - Coinbase Demo                                                #
+# Python Module for Gen AI Solutions - Month End Process                                            #
 # Author: Subhadip Kundu (Jade Global)                                                              #
 # --------------------------------------------------------------------------------------------------#
 #    Date      |     Author          |                   Comment                                    #
 # ------------ + ------------------- + ------------------------------------------------------------ #
 # 15-Jun-2024  | Subhadip Kundu      | Created the Initial Code                                     #
+# 20-Jun-2024  | Subhadip Kundu      | Added Workflow and Dashboard Details                         #
+# 24-Jun-2024  | Subhadip Kundu      | Change the Dashboard Details                                 #
 #####################################################################################################
 
 import os
@@ -190,6 +192,16 @@ def plot_chart(dataFrame):
     fig = px.bar(df, x=df.columns[0], y=df.columns[-1], color=df.columns[1])
     return st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
+
+def format_amount(amount):
+    if amount >= 1_000_000:
+        return f"$ {amount / 1_000_000:.2f}M"
+    elif amount >= 1_000:
+        return f"$ {amount / 1_000:.2f}K"
+    else:
+        return f"$ {amount}"
+
+
 def chat_history(CSV_FILE):
     try:
         chat_history_df = pd.read_csv(CSV_FILE)
@@ -279,23 +291,30 @@ def main():
             # Setup the Widgets
             with st.sidebar:
                 st.image('assets/jadeglobalbig.png', width=200)
-                st.markdown("<h1 style='text-align: center;'>AI Finance Assistant</h1>", unsafe_allow_html=True)
+                st.markdown("<h1 style='text-align: center;'>FinClose AI</h1>", unsafe_allow_html=True)
                 st.write(" \n  \n  \n  \n")
 
             ### Add Option menu to select the source
             with st.sidebar:
                 select_source = option_menu(menu_title="Menu",
                                             menu_icon="list",
-                                            options=['Dashboard', 'Query Financial Data', 'Query Month End Reports', 'Trigger Month End Bots'],
-                                            icons=['graph-up-arrow', 'database', 'filetype-pdf', 'robot'],
+                                            options=['Dashboard', 'Query Financial Data', 'Trigger Month End', 'Query Month End Reports'],
+                                            icons=['graph-up-arrow', 'database', 'robot', 'filetype-pdf'],
                                             default_index=0)
 
             if select_source == 'Dashboard':
                 st.title("Dashboard :")
+                # Month Map
+                month_map = {
+                    'January': 1, 'February': 2, 'March': 3, 'April': 4,
+                    'May': 5, 'June': 6, 'July': 7, 'August': 8,
+                    'September': 9, 'October': 10, 'November': 11, 'December': 12
+                }
+
                 # Selling Data
                 selling_sql_qry = """SELECT
-                                        SELLING_YEAR||' '||SELLING_MONTH AS SELLING_YEAR_MONTH,
-                                        SELLING_COST
+                                        SELLING_YEAR||' '||SELLING_MONTH AS YEAR_MONTH,
+                                        SELLING_COST AS REVENUE_AMOUNT
                                     FROM DB_DEV.SC_COINBASE.SELLING_COST 
                                     ORDER BY SELLING_YEAR, 
                                     CASE SELLING_MONTH
@@ -308,13 +327,14 @@ def main():
                                     END;"""
                 selling_sql_result = run_sql_query(selling_sql_qry)
                 selling_df = pd.DataFrame(selling_sql_result)
-                selling_df[['Year', 'MonthName']] = selling_df['SELLING_YEAR_MONTH'].str.split(expand=True)
+                selling_df[['Year', 'MonthName']] = selling_df['YEAR_MONTH'].str.split(expand=True)
                 selling_df['Year'] = selling_df['Year'].astype(int)
                 selling_df.columns = selling_df.columns.str.replace('_', ' ')
+
                 # Buying Data
                 buying_sql_qry = """SELECT
-                                        BUYING_YEAR||' '||BUYING_MONTH AS BUYING_YEAR_MONTH,
-                                        BUYING_COST
+                                        BUYING_YEAR||' '||BUYING_MONTH AS YEAR_MONTH,
+                                        BUYING_COST AS EXPENSES_AMOUNT
                                     FROM DB_DEV.SC_COINBASE.BUYING_COST 
                                     ORDER BY BUYING_YEAR, 
                                     CASE BUYING_MONTH
@@ -327,22 +347,43 @@ def main():
                                     END;"""
                 buying_sql_result = run_sql_query(buying_sql_qry)
                 buying_df = pd.DataFrame(buying_sql_result)
-                buying_df[['Year', 'MonthName']] = buying_df['BUYING_YEAR_MONTH'].str.split(expand=True)
+                buying_df[['Year', 'MonthName']] = buying_df['YEAR_MONTH'].str.split(expand=True)
                 buying_df['Year'] = buying_df['Year'].astype(int)
                 buying_df.columns = buying_df.columns.str.replace('_', ' ')
+
                 # Distinct Year and Month List
                 year_list = list(buying_df.Year.unique())[::-1]
                 month_list = list(buying_df.MonthName.unique())
+
+                # Margin Data
+                df_merged = pd.merge(selling_df, buying_df, on=['YEAR MONTH', 'Year', 'MonthName'])
+                df_merged['Margin Amount'] = df_merged['REVENUE AMOUNT'] - df_merged['EXPENSES AMOUNT']
+                df_merged['Margin Amount'] = round((((df_merged['REVENUE AMOUNT'] - df_merged['EXPENSES AMOUNT']) / df_merged['REVENUE AMOUNT']) * 100), 2)
+                df_merged['Month_Num'] = df_merged['MonthName'].map(month_map)
+                df_margin = df_merged[['YEAR MONTH', 'Margin Amount', 'Year', 'Month_Num']]
+
                 # DSO Data
-                dso_sql_qry = "SELECT AMOUNT, TYPE FROM DB_DEV.SC_COINBASE.DSO ORDER BY TYPE;"
+                dso_sql_qry = """SELECT 
+                                    R.PERIOD_YEAR, 
+                                    R.PERIOD_MONTH,
+                                    R.PERIOD_YEAR||' '||R.PERIOD_MONTH AS YEAR_MONTH,
+                                    ROUND(((R.AMOUNT * DAY(LAST_DAY(TO_DATE(R.PERIOD_MONTH|| ' ' ||R.PERIOD_YEAR, 'MMMM YYYY'))))/S.AMOUNT), 2) AS DSO_AMOUNT
+                                FROM 
+                                    DB_DEV.SC_COINBASE.DSO AS R
+                                INNER JOIN
+                                    DB_DEV.SC_COINBASE.DSO AS S
+                                ON R.PERIOD_YEAR = S.PERIOD_YEAR
+                                AND R.PERIOD_MONTH = S.PERIOD_MONTH
+                                AND R.TYPE = 'RECEIVABLES'
+                                AND S.TYPE = 'CREDIT_SALES';"""
                 dso_sql_result = run_sql_query(dso_sql_qry)
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
-                # Outstanding Receivables Data
-                out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DB_DEV.SC_COINBASE.OUTSTANDING_RECEIVABLES;"
-                out_sql_result = run_sql_query(out_sql_qry)
-                out_df = pd.DataFrame(out_sql_result)
-                out_df.columns = out_df.columns.str.replace('_', ' ')
+                # # Outstanding Receivables Data
+                # out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DB_DEV.SC_COINBASE.OUTSTANDING_RECEIVABLES;"
+                # out_sql_result = run_sql_query(out_sql_qry)
+                # out_df = pd.DataFrame(out_sql_result)
+                # out_df.columns = out_df.columns.str.replace('_', ' ')
 
                 # Dashboard Main Panel
                 col = st.columns((3), gap='medium')
@@ -375,54 +416,90 @@ def main():
                     st.markdown('')
 
                 with col[0]:
-                    st.subheader("Selling Cost:", divider='rainbow')
+                    st.subheader("Revenue:", divider='rainbow')
                     # Metric Graph
                     curr_sell_df = \
                         selling_df[(selling_df['Year'] == year_selected) & (selling_df['MonthName'] == month_selected)][
-                            'SELLING COST'].to_frame().reset_index(drop=True)
-                    curr_sell_data = curr_sell_df.loc[0, 'SELLING COST']
+                            'REVENUE AMOUNT'].to_frame().reset_index(drop=True)
+                    curr_sell_data = curr_sell_df.loc[0, 'REVENUE AMOUNT']
                     prev_sell_df = \
                         selling_df[(selling_df['Year'] == year_selected) & (selling_df['MonthName'] == prev_month)][
-                            'SELLING COST'].to_frame().reset_index(drop=True)
-                    prev_sell_data = prev_sell_df.loc[0, 'SELLING COST']
+                            'REVENUE AMOUNT'].to_frame().reset_index(drop=True)
+                    prev_sell_data = prev_sell_df.loc[0, 'REVENUE AMOUNT']
                     sell_data_diff = str(round((((curr_sell_data - prev_sell_data) / prev_sell_data) * 100), 2)) + '%'
-                    st.metric(label=str(year_selected) + " " + str(month_selected), value=round(curr_sell_data,2),
+                    curr_sell_amount = format_amount(curr_sell_data)
+                    st.metric(label=str(year_selected) + " " + str(month_selected),
+                              value=curr_sell_amount,
                               delta=sell_data_diff)
                     # Bar Graph
-                    fig = px.bar(selling_df, x=selling_df.columns[0], y=selling_df.columns[1], color=selling_df.columns[1])
+                    fig = px.bar(selling_df,
+                                 x=selling_df.columns[0],
+                                 y=selling_df.columns[1],
+                                 #color=selling_df.columns[1]
+                                 )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
                 with col[1]:
-                    st.subheader("Buying Cost:", divider='rainbow')
+                    st.subheader("Expenses:", divider='rainbow')
                     # Metric Graph
                     curr_buy_df = \
                         buying_df[(buying_df['Year'] == year_selected) & (buying_df['MonthName'] == month_selected)][
-                            'BUYING COST'].to_frame().reset_index(drop=True)
-                    curr_buy_data = curr_buy_df.loc[0, 'BUYING COST']
+                            'EXPENSES AMOUNT'].to_frame().reset_index(drop=True)
+                    curr_buy_data = curr_buy_df.loc[0, 'EXPENSES AMOUNT']
                     prev_buy_df = \
                         buying_df[(buying_df['Year'] == year_selected) & (buying_df['MonthName'] == prev_month)][
-                            'BUYING COST'].to_frame().reset_index(drop=True)
-                    prev_buy_data = prev_buy_df.loc[0, 'BUYING COST']
+                            'EXPENSES AMOUNT'].to_frame().reset_index(drop=True)
+                    prev_buy_data = prev_buy_df.loc[0, 'EXPENSES AMOUNT']
                     buy_data_diff = str(round((((curr_buy_data - prev_buy_data) / prev_buy_data) * 100), 2)) + '%'
-                    st.metric(label=str(year_selected) + " " + str(month_selected), value=round(curr_buy_data,2),
+                    curr_buy_amount = format_amount(curr_buy_data)
+                    st.metric(label=str(year_selected) + " " + str(month_selected),
+                              value=curr_buy_amount,
                               delta=buy_data_diff)
                     # Bar Graph
-                    fig = px.bar(buying_df, x=buying_df.columns[0], y=buying_df.columns[1],
-                                 color=buying_df.columns[1])
+                    fig = px.bar(buying_df,
+                                 x=buying_df.columns[0],
+                                 y=buying_df.columns[1],
+                                 #color=buying_df.columns[1]
+                                 )
+                    st.plotly_chart(fig, width=0, height=300, use_container_width=True)
+
+                    # DSO Data
+                    st.subheader("Days Sales Outstanding:", divider='rainbow')
+                    # Metric Graph
+                    curr_dso_df = \
+                        dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == month_selected)][
+                            'DSO AMOUNT'].to_frame().reset_index(drop=True)
+                    curr_dso_data = curr_dso_df.loc[0, 'DSO AMOUNT']
+                    prev_dso_df = \
+                        dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == prev_month)][
+                            'DSO AMOUNT'].to_frame().reset_index(drop=True)
+                    prev_dso_data = prev_dso_df.loc[0, 'DSO AMOUNT']
+                    dso_data_diff = str(round((((curr_dso_data - prev_dso_data) / prev_dso_data) * 100), 2)) + '%'
+                    st.metric(label=str(year_selected) + " " + str(month_selected),
+                              value=curr_dso_data,
+                              delta=dso_data_diff)
+                    # Bar Graph
+                    fig = px.bar(dso_df,
+                                 x=dso_df.columns[2],
+                                 y=dso_df.columns[3],
+                                 # color=df_margin.columns[3]
+                                 )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
                 with col[2]:
-                    st.subheader("Outstanding Amount:", divider='rainbow')
-                    headers = out_df.columns
-                    st.markdown(tabulate(out_df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
-                                unsafe_allow_html=True)
-
-                    st.subheader("DSO:", divider='rainbow')
-                    fig = px.pie(dso_df, names='TYPE', values='AMOUNT', title='DSO')
-                    st.plotly_chart(fig)
-                    headers = dso_df.columns
-                    st.markdown(tabulate(dso_df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
-                            unsafe_allow_html=True)
+                    # Margin Data
+                    st.subheader("Margin:", divider='rainbow')
+                    prev_margin_data = round((((prev_sell_data - prev_buy_data) / prev_buy_data) * 100), 2)
+                    curr_margin_data = round((((curr_sell_data - curr_buy_data) / curr_buy_data) * 100), 2)
+                    margin_data_diff = str(round((((curr_margin_data - prev_margin_data) / prev_margin_data) * 100), 2)) + '%'
+                    st.metric(label=str(year_selected) + " " + str(month_selected), value=str(curr_margin_data) + '%', delta=margin_data_diff)
+                    # Bar Graph
+                    fig = px.bar(df_margin,
+                                 x=df_margin.columns[0],
+                                 y=df_margin.columns[1],
+                                 #color=df_margin.columns[1]
+                                  )
+                    st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
             elif select_source == 'Query Financial Data':
                 ### Setup the Home Page
@@ -574,43 +651,43 @@ def main():
                         st.markdown(answer)
                         st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            elif select_source == 'Trigger Month End Bots':
+            elif select_source == 'Trigger Month End':
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
                 st.markdown("""Welcome! I'm your AI assistant. 
                             My purpose is to start the AP month end process and check the status for you.
                             Please click on the below button, I will trigger the process for you.""")
-                start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
-                if start_process:
-                    st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
-                    st.chat_message("assistant").markdown("The AP Month End Process is being Started", unsafe_allow_html=True)
-                    UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-                i = 0
-                previous_progress = ""
-                while i <= 80:
-                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
-                    if queue_item_status in ('New', 'InProgress'):
-                        if queue_item_progress is None and previous_progress is not None:
-                            st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
-                            previous_progress = None
-                            time.sleep(15)
-                            i += 1
-                        elif queue_item_progress != previous_progress and queue_item_progress is not None:
-                            st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                            previous_progress = queue_item_progress
-                            time.sleep(15)
-                            i += 1
-                        else:
-                            previous_progress = queue_item_progress
-                            time.sleep(15)
-                            i += 1
-                    elif queue_item_status == 'Successful':
-                        st.chat_message("assistant").markdown("All the processes related to AP month end process have been completed successfully.", unsafe_allow_html=True)
-                        st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
-                        break
-                    else:
-                        #st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
-                        #st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                        break
+                # start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
+                # if start_process:
+                #     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
+                #     st.chat_message("assistant").markdown("The AP Month End Process is being Started", unsafe_allow_html=True)
+                #     UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
+                # i = 0
+                # previous_progress = ""
+                # while i <= 80:
+                #     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                #     if queue_item_status in ('New', 'InProgress'):
+                #         if queue_item_progress is None and previous_progress is not None:
+                #             st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
+                #             previous_progress = None
+                #             time.sleep(15)
+                #             i += 1
+                #         elif queue_item_progress != previous_progress and queue_item_progress is not None:
+                #             st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
+                #             previous_progress = queue_item_progress
+                #             time.sleep(15)
+                #             i += 1
+                #         else:
+                #             previous_progress = queue_item_progress
+                #             time.sleep(15)
+                #             i += 1
+                #     elif queue_item_status == 'Successful':
+                #         st.chat_message("assistant").markdown("All the processes related to AP month end process have been completed successfully.", unsafe_allow_html=True)
+                #         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
+                #         break
+                #     else:
+                #         #st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
+                #         #st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
+                #         break
 
                 # Workflow buttons
                 # Create a horizontal layout with columns
@@ -619,7 +696,7 @@ def main():
                 with col1:
                     # Create a container for the buttons
                     with st.container(border=True, height=600):
-                        st.subheader("Workday -3", divider='rainbow')
+                        st.subheader("PeriodClose -3", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Create Accounting**]")
                         if st.session_state.button1 == 1:
@@ -635,14 +712,23 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
                         else:
                             if st.button("RUN ▶️", key="Create_Accounting_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button1 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                UiPath_API_Queue_Load.add_data_to_queue('Create Accounting')
+                                for percent_complete in range(100):
+                                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                    if queue_item_status in ('New', 'InProgress'):
+                                        my_bar31.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                        time.sleep(1.2)
+                                    elif queue_item_status == 'Successful':
+                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        break
+                                    else:
+                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        break
 
                     with st.container(border=True, height=600):
-                        st.subheader("Workday 1", divider='rainbow')
+                        st.subheader("PeriodClose +1", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**GL Transfer**]")
                         if st.session_state.button2 == 1:
@@ -658,11 +744,20 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
                         else:
                             if st.button("RUN ▶️", key="GL_Transfer_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button2 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                UiPath_API_Queue_Load.add_data_to_queue('GL Transfer')
+                                for percent_complete in range(100):
+                                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                    if queue_item_status in ('New', 'InProgress'):
+                                        my_bar31.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                        time.sleep(1.2)
+                                    elif queue_item_status == 'Successful':
+                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        break
+                                    else:
+                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        break
 
                         # Second Button
                         st.markdown(":grey-background[**Trial Balance Report**]")
@@ -679,17 +774,26 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
                         else:
                             if st.button("RUN ▶️", key="Trial_Balance_Report_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button3 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                UiPath_API_Queue_Load.add_data_to_queue('Trial Balance Report')
+                                for percent_complete in range(100):
+                                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                    if queue_item_status in ('New', 'InProgress'):
+                                        my_bar31.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                        time.sleep(1.2)
+                                    elif queue_item_status == 'Successful':
+                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        break
+                                    else:
+                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        break
 
                 # Second horizontal layout
                 with col2:
                     # Create a container for the buttons
                     with st.container(border=True, height=600):
-                        st.subheader("Workday -2", divider='rainbow')
+                        st.subheader("PeriodClose -2", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Accounting Reconciliation**]")
                         if st.session_state.button4 == 1:
@@ -705,11 +809,20 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
                         else:
                             if st.button("RUN ▶️", key="Accounting_Reconciliation_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button4 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                UiPath_API_Queue_Load.add_data_to_queue('Reconciliation')
+                                for percent_complete in range(100):
+                                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                    if queue_item_status in ('New', 'InProgress'):
+                                        my_bar31.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                        time.sleep(1.2)
+                                    elif queue_item_status == 'Successful':
+                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        break
+                                    else:
+                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        break
                         # Second Button
                         st.markdown(":grey-background[**IT Accrual check**]")
                         if st.session_state.button5 == 1:
@@ -734,7 +847,7 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
 
                     with st.container(border=True, height=600):
-                        st.subheader("Workday 2", divider='rainbow')
+                        st.subheader("PeriodClose +2", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Inventory Recon**]")
                         if st.session_state.button6 == 1:
@@ -771,11 +884,20 @@ def main():
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
                         else:
                             if st.button("RUN ▶️", key="Invoice_Aging_Check_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button7 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                UiPath_API_Queue_Load.add_data_to_queue('Invoice Aging')
+                                for percent_complete in range(100):
+                                    queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                    if queue_item_status in ('New', 'InProgress'):
+                                        my_bar31.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                        time.sleep(1.2)
+                                    elif queue_item_status == 'Successful':
+                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        break
+                                    else:
+                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        break
 
                         # Third Button
                         st.markdown(":grey-background[**Tax and Treasury Analysis**]")
@@ -801,7 +923,7 @@ def main():
                     # Third horizontal layout
                     with col3:
                         with st.container(border=True, height=600):
-                            st.subheader("Workday -1", divider='rainbow')
+                            st.subheader("PeriodClose -1", divider='rainbow')
                             # First Button
                             st.markdown(":grey-background[**Open PO and GL period**]")
                             if st.session_state.button9 == 1:
@@ -838,11 +960,20 @@ def main():
                                     my_bar31.success('The Process has completed successfully!', icon="✅")
                             else:
                                 if st.button("RUN ▶️", key="Unaccounted_transaction_check_RUN"):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button10 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                                    UiPath_API_Queue_Load.add_data_to_queue('Unaccounted Transaction Report')
+                                    for percent_complete in range(100):
+                                        queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                        if queue_item_status in ('New', 'InProgress'):
+                                            my_bar31.progress(percent_complete + 1,
+                                                              text="Operation is in progress. Please wait for sometime...")
+                                            time.sleep(1.2)
+                                        elif queue_item_status == 'Successful':
+                                            my_bar31.success('The Process has completed successfully!', icon="✅")
+                                            break
+                                        else:
+                                            my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                            break
 
                             # Third Button
                             st.markdown(":grey-background[**Exception Correction**]")
@@ -859,14 +990,23 @@ def main():
                                     my_bar31.success('The Process has completed successfully!', icon="✅")
                             else:
                                 if st.button("RUN ▶️", key="Exception_Correction_RUN"):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button11 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                                    UiPath_API_Queue_Load.add_data_to_queue('Exception Processing')
+                                    for percent_complete in range(100):
+                                        queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
+                                        if queue_item_status in ('New', 'InProgress'):
+                                            my_bar31.progress(percent_complete + 1,
+                                                              text="Operation is in progress. Please wait for sometime...")
+                                            time.sleep(1.2)
+                                        elif queue_item_status == 'Successful':
+                                            my_bar31.success('The Process has completed successfully!', icon="✅")
+                                            break
+                                        else:
+                                            my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                            break
 
                         with st.container(border=True, height=600):
-                            st.subheader("Workday 3", divider='rainbow')
+                            st.subheader("PeriodClose +3", divider='rainbow')
                             # First Button
                             st.markdown(":grey-background[**Close Period**]")
                             if st.session_state.button12 == 1:
