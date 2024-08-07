@@ -166,9 +166,9 @@ def result_analysis(dataframe, question):
         Keep analysis strictly for business users working in the finance domain to understand nature of output. Limit your response accordingly.
         Few Rules to follow are:
         1. If the result for the query is in tabular format make sure the whole analysis is in same format.
-        2. The analysis must be within 80-150 words. 
+        2. The analysis must be within 80-120 words. 
         3. Do not include supplied data into analysis.
-        4. YOu can add some points from your end if you think that is relevant to the user question. 
+        4. You can add some points from your end if you think that is relevant to the user question. 
         '''
     analysis_question = str(analysis_question_part1) + str(dataframe) + str(analysis_question_prompt)
     fewShot = few_shot()
