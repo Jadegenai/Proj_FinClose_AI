@@ -639,56 +639,24 @@ def main():
                         if st.button(f"{row['User_Chat_History']}"):
                             str_input = str(row['User_Chat_History'])
 
-                for message in st.session_state.messages:
+                for message in st.session_state.messages1:
                     with st.chat_message(message["role"]):
                         st.markdown(message["content"], unsafe_allow_html=True)
 
                 if prompt1 := str_input:
                     st.chat_message("user").markdown(prompt1, unsafe_allow_html=True)
-                    st.session_state.messages.append({"role": "user", "content": prompt1})
+                    st.session_state.messages1.append({"role": "user", "content": prompt1})
                     with st.chat_message("assistant"):
                         result = prompts.letter_chain(str_input)
                         answer = result['result']
                         st.markdown(answer)
-                        st.session_state.messages.append({"role": "assistant", "content": answer})
+                        st.session_state.messages1.append({"role": "assistant", "content": answer})
 
             elif select_source == 'Trigger Month End':
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
                 st.markdown("""Welcome! I'm your AI assistant. 
                             My purpose is to start the AP month end process and check the status for you.
                             Please click on the below button, I will trigger the process for you.""")
-                # start_process = st.button(":white[Close AP Period Bot]", type="primary", key="AP_Month_End")
-                # if start_process:
-                #     st.chat_message("user").markdown("Start AP Month End Process", unsafe_allow_html=True)
-                #     st.chat_message("assistant").markdown("The AP Month End Process is being Started", unsafe_allow_html=True)
-                #     UiPath_API_Queue_Load.add_data_to_queue('Start_Month_End_Process')
-                # i = 0
-                # previous_progress = ""
-                # while i <= 80:
-                #     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
-                #     if queue_item_status in ('New', 'InProgress'):
-                #         if queue_item_progress is None and previous_progress is not None:
-                #             st.chat_message("assistant").markdown("The process is in progress. Please wait for sometime to get it completed.", unsafe_allow_html=True)
-                #             previous_progress = None
-                #             time.sleep(15)
-                #             i += 1
-                #         elif queue_item_progress != previous_progress and queue_item_progress is not None:
-                #             st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                #             previous_progress = queue_item_progress
-                #             time.sleep(15)
-                #             i += 1
-                #         else:
-                #             previous_progress = queue_item_progress
-                #             time.sleep(15)
-                #             i += 1
-                #     elif queue_item_status == 'Successful':
-                #         st.chat_message("assistant").markdown("All the processes related to AP month end process have been completed successfully.", unsafe_allow_html=True)
-                #         st.session_state.messages1.append({"role": "assistant", "content": "The process has been completed successfully."})
-                #         break
-                #     else:
-                #         #st.chat_message("assistant").markdown(queue_item_status, unsafe_allow_html=True)
-                #         #st.chat_message("assistant").markdown(queue_item_progress, unsafe_allow_html=True)
-                #         break
 
                 # Workflow buttons
                 # Create a horizontal layout with columns
@@ -720,7 +688,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -752,7 +720,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -782,7 +750,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -817,7 +785,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -892,7 +860,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(1.2)
+                                        time.sleep(2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -968,7 +936,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(1.2)
+                                            time.sleep(2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
@@ -998,7 +966,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(1.2)
+                                            time.sleep(2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
