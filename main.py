@@ -163,11 +163,12 @@ def run_sql_query(query):
 def result_analysis(dataframe, question):
     analysis_question_part1 = '''Provide analysis of the data in tabular format below. \n '''
     analysis_question_prompt = '''\nUse "Ask" and "Metadata" information as supporting data for the analysis. This information is mentioned toward end of this text.
-        Keep analysis strictly for business users working in the sales domain to understand nature of output. Limit your response accordingly.
+        Keep analysis strictly for business users working in the finance domain to understand nature of output. Limit your response accordingly.
         Few Rules to follow are:
         1. If the result for the query is in tabular format make sure the whole analysis is in same format.
-        2. The analysis must be within 80-100 words. 
+        2. The analysis must be within 80-150 words. 
         3. Do not include supplied data into analysis.
+        4. YOu can add some points from your end if you think that is relevant to the user question. 
         '''
     analysis_question = str(analysis_question_part1) + str(dataframe) + str(analysis_question_prompt)
     fewShot = few_shot()
@@ -178,7 +179,7 @@ def result_analysis(dataframe, question):
     metadata = ""
     for i in docs:
         metadata = metadata + "\n" + i.page_content
-    zeroShotAnlyze = zero_shot_analyze_utility(analysis_question, question, "inventory management", metadata)
+    zeroShotAnlyze = zero_shot_analyze_utility(analysis_question, question, "company finance data", metadata)
     analyze_prompt = zeroShotAnlyze.get_analyze_prompt()
     qa_chain = RetrievalQA.from_chain_type(llm,
                                            retriever=docsearch.as_retriever(),
@@ -506,7 +507,7 @@ def main():
                 str_input = st.chat_input("Enter your question:")
                 st.markdown("<h2>AI Assistant :</h2>", unsafe_allow_html=True)
                 st.markdown("""Welcome! I am Finance Assistant of your company. 
-                            I possess the ability to extract information from your company's financial statements like invoice, balance sheet etc. 
+                            I possess the ability to extract information from your company's financial statements like expense, invoice, balance sheet etc. 
                             Please ask me questions and I will try my level best to provide accurate responses.""")
                 ### Add a select box to add scope to choose the model
                 llm_selected = st.selectbox("Choose a model :",
@@ -719,7 +720,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(2)
+                                        time.sleep(1.2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -751,7 +752,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(2)
+                                        time.sleep(1.2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -781,7 +782,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(2)
+                                        time.sleep(1.2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -816,7 +817,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(2)
+                                        time.sleep(1.2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -891,7 +892,7 @@ def main():
                                     if queue_item_status in ('New', 'InProgress'):
                                         my_bar31.progress(percent_complete + 1,
                                                           text="Operation is in progress. Please wait for sometime...")
-                                        time.sleep(2)
+                                        time.sleep(1.2)
                                     elif queue_item_status == 'Successful':
                                         my_bar31.success('The Process has completed successfully!', icon="✅")
                                         break
@@ -967,7 +968,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(2)
+                                            time.sleep(1.2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
@@ -997,7 +998,7 @@ def main():
                                         if queue_item_status in ('New', 'InProgress'):
                                             my_bar31.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
-                                            time.sleep(2)
+                                            time.sleep(1.2)
                                         elif queue_item_status == 'Successful':
                                             my_bar31.success('The Process has completed successfully!', icon="✅")
                                             break
