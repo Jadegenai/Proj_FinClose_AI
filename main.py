@@ -316,7 +316,7 @@ def main():
                 selling_sql_qry = """SELECT
                                         SELLING_YEAR||' '||SELLING_MONTH AS YEAR_MONTH,
                                         SELLING_COST AS REVENUE_AMOUNT
-                                    FROM DB_DEV.SC_COINBASE.SELLING_COST 
+                                    FROM DEMO_DB.SC_FINCLOSE.SELLING_COST 
                                     ORDER BY SELLING_YEAR, 
                                     CASE SELLING_MONTH
                                         WHEN 'January' THEN 1
@@ -336,7 +336,7 @@ def main():
                 buying_sql_qry = """SELECT
                                         BUYING_YEAR||' '||BUYING_MONTH AS YEAR_MONTH,
                                         BUYING_COST AS EXPENSES_AMOUNT
-                                    FROM DB_DEV.SC_COINBASE.BUYING_COST 
+                                    FROM DEMO_DB.SC_FINCLOSE.BUYING_COST 
                                     ORDER BY BUYING_YEAR, 
                                     CASE BUYING_MONTH
                                         WHEN 'January' THEN 1
@@ -370,9 +370,9 @@ def main():
                                     R.PERIOD_YEAR||' '||R.PERIOD_MONTH AS YEAR_MONTH,
                                     ROUND(((R.AMOUNT * DAY(LAST_DAY(TO_DATE(R.PERIOD_MONTH|| ' ' ||R.PERIOD_YEAR, 'MMMM YYYY'))))/S.AMOUNT), 2) AS DSO_AMOUNT
                                 FROM 
-                                    DB_DEV.SC_COINBASE.DSO AS R
+                                    DEMO_DB.SC_FINCLOSE.DSO AS R
                                 INNER JOIN
-                                    DB_DEV.SC_COINBASE.DSO AS S
+                                    DEMO_DB.SC_FINCLOSE.DSO AS S
                                 ON R.PERIOD_YEAR = S.PERIOD_YEAR
                                 AND R.PERIOD_MONTH = S.PERIOD_MONTH
                                 AND R.TYPE = 'RECEIVABLES'
@@ -381,7 +381,7 @@ def main():
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
                 # # Outstanding Receivables Data
-                # out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DB_DEV.SC_COINBASE.OUTSTANDING_RECEIVABLES;"
+                # out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DEMO_DB.SC_FINCLOSE.OUTSTANDING_RECEIVABLES;"
                 # out_sql_result = run_sql_query(out_sql_qry)
                 # out_df = pd.DataFrame(out_sql_result)
                 # out_df.columns = out_df.columns.str.replace('_', ' ')
