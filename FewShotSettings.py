@@ -36,7 +36,7 @@ class few_shot_settings:
             {
                 "input": "Which are the top 10 high value suppliers ?",
                 "sql_cmd": '''SELECT VENDOR_NAME, SUM(INVOICE_AMOUNT) AS TOTAL_INVOICE_AMOUNT
-                            FROM DB_DEV.SC_COINBASE.INVOICE
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE
                             GROUP BY ALL 
                             ORDER BY 2 DESC
                             LIMIT 10;''',
@@ -44,7 +44,7 @@ class few_shot_settings:
             {
                 "input": "Which are the top 10 high volume suppliers ?",
                 "sql_cmd": '''SELECT VENDOR_NAME, COUNT(INVOICE_ID) AS NUMBER_OF_INVOICE
-                            FROM DB_DEV.SC_COINBASE.INVOICE
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE
                             GROUP BY ALL 
                             ORDER BY 2 DESC
                             LIMIT 10;''',
@@ -52,12 +52,12 @@ class few_shot_settings:
             {
                 "input": "How much outstanding balance is left to be paid ?",
                 "sql_cmd": '''SELECT (SUM(INVOICE_AMOUNT) - SUM(AMOUNT_PAID)) AS OUTSTANDING_BALANCE
-                            FROM DB_DEV.SC_COINBASE.INVOICE;''',
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE;''',
             },
             {
                 "input": "Show the list of Vendors has balance left to be paid",
                 "sql_cmd": '''SELECT VENDOR_NAME, (SUM(INVOICE_AMOUNT) - SUM(AMOUNT_PAID)) AS OUTSTANDING_BALANCE
-                            FROM DB_DEV.SC_COINBASE.INVOICE
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE
                             GROUP BY ALL 
                             HAVING OUTSTANDING_BALANCE > 0
                             ORDER BY 2 DESC;''',
@@ -65,21 +65,21 @@ class few_shot_settings:
             {
                 "input": "How many invoices were created manually ?",
                 "sql_cmd": '''SELECT SOURCE AS INVOICE_TYPE, COUNT(INVOICE_ID) AS NUMBER_OF_INVOICE
-                            FROM DB_DEV.SC_COINBASE.INVOICE
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE
                             WHERE SOURCE = ''Manual Invoice Entry''
                             GROUP BY ALL;''',
             },
             {
                 "input": "How many invoices were created by BOT ?",
                 "sql_cmd": '''SELECT SOURCE AS INVOICE_TYPE, COUNT(INVOICE_ID) AS NUMBER_OF_INVOICE
-                            FROM DB_DEV.SC_COINBASE.INVOICE
+                            FROM DEMO_DB.SC_FINCLOSE.INVOICE
                             WHERE SOURCE = ''AUTOBOT PAYABLES''
                             GROUP BY ALL;''',
             },
             {
                 "input": "Show the total employee expense amount per year for the last two years",
                 "sql_cmd": '''SELECT YEAR(INVOICE_DATE) AS INVOICE_YEAR, SUM(PAYMENT_AMOUNT) AS TOTAL_EXPENSES_AMOUNT 
-                            FROM DB_DEV.SC_COINBASE.EMPLOYEE_EXPENSES 
+                            FROM DEMO_DB.SC_FINCLOSE.EMPLOYEE_EXPENSES 
                             GROUP BY ALL
                             ORDER BY 1 DESC
                             LIMIT 2;''',
@@ -87,7 +87,7 @@ class few_shot_settings:
             {
                 "input": "Show the average employee expense amount per year for the last two years",
                 "sql_cmd": '''SELECT YEAR(INVOICE_DATE) AS INVOICE_YEAR, AVG(PAYMENT_AMOUNT) AS AVERAGE_EXPENSES_AMOUNT 
-                            FROM DB_DEV.SC_COINBASE.EMPLOYEE_EXPENSES 
+                            FROM DEMO_DB.SC_FINCLOSE.EMPLOYEE_EXPENSES 
                             GROUP BY ALL
                             ORDER BY 1 DESC
                             LIMIT 2;''',
@@ -95,7 +95,7 @@ class few_shot_settings:
             {
                 "input": "Show the number of employee expense invoices per year for the last two years",
                 "sql_cmd": '''SELECT YEAR(INVOICE_DATE) AS INVOICE_YEAR, COUNT(INVOICE_NUMBER) AS NUMBER_OF_INVOICES
-                            FROM DB_DEV.SC_COINBASE.EMPLOYEE_EXPENSES 
+                            FROM DEMO_DB.SC_FINCLOSE.EMPLOYEE_EXPENSES 
                             GROUP BY ALL
                             ORDER BY 1 DESC
                             LIMIT 2;''',
@@ -107,7 +107,7 @@ class few_shot_settings:
                                     SUM(PAYMENT_AMOUNT) AS TOTAL_EXPENSES_AMOUNT, 
                                     AVG(PAYMENT_AMOUNT) AS AVERAGE_EXPENSES_AMOUNT, 
                                     COUNT(INVOICE_NUMBER) AS NUMBER_OF_INVOICES
-                                FROM DB_DEV.SC_COINBASE.EMPLOYEE_EXPENSES 
+                                FROM DEMO_DB.SC_FINCLOSE.EMPLOYEE_EXPENSES 
                                 WHERE YEAR(INVOICE_DATE) IN (YEAR(CURRENT_DATE), YEAR(CURRENT_DATE)-1)
                                 GROUP BY YEAR(INVOICE_DATE)
                                 ORDER BY 1 DESC;''',
@@ -121,7 +121,7 @@ class few_shot_settings:
                                 END AS SEASON_NAME, 
                                 CUSTOMER_NAME,
                                 SUM(REVENUE_AMOUNT) AS TOTAL_REVENUE_AMOUNT
-                                FROM DB_DEV.SC_COINBASE.CUSTOMER_REVENUE
+                                FROM DEMO_DB.SC_FINCLOSE.CUSTOMER_REVENUE
                                 WHERE SEASON_NAME IS NOT NULL
                                 GROUP BY SEASON_NAME, CUSTOMER_NAME
                                 ORDER BY 3 DESC,1,2;''',
@@ -129,7 +129,7 @@ class few_shot_settings:
             {
                 "input": "Show year wise total balance for each of the category of GL Account",
                 "sql_cmd": '''SELECT PERIOD_YEAR, CATEGORY, SUM(BALANCE) AS TOTAL_BALANCE 
-                                FROM DB_DEV.SC_COINBASE.GL_ACCOUNT_BALANCES_YEAR
+                                FROM DEMO_DB.SC_FINCLOSE.GL_ACCOUNT_BALANCES_YEAR
                                 GROUP BY 1, 2
                             ORDER BY 1 DESC, 2''',
             }
