@@ -7,6 +7,7 @@
 # 15-Jun-2024  | Subhadip Kundu      | Created the Initial Code                                     #
 # 20-Jun-2024  | Subhadip Kundu      | Added Workflow and Dashboard Details                         #
 # 24-Jun-2024  | Subhadip Kundu      | Change the Dashboard Details                                 #
+# 20-Aug-2024  | Subhadip Kundu      | Change the Vector Database from PineCone to FAISS            #
 #####################################################################################################
 
 import os
@@ -131,7 +132,7 @@ def text_to_sql(user_question):
         embeddings = fewShot.get_embeddings()
         example_selector = fewShot.get_example_selector(embeddings)
         prompt_template = fewShot.get_prompt(question, example_selector, example_prompt)
-        docsearch = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+        docsearch = FAISS.load_local("db_faiss_index", embeddings, allow_dangerous_deserialization=True)
         qa_chain = RetrievalQA.from_chain_type(llm, retriever=docsearch.as_retriever(),
                                                chain_type_kwargs={"prompt": prompt_template})
         sql_query = qa_chain({"query": question})['result']
@@ -174,7 +175,7 @@ def result_analysis(dataframe, question):
     fewShot = few_shot()
     llm = large_language_model(llm_model_name)
     embeddings = fewShot.get_embeddings()
-    docsearch = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+    docsearch = FAISS.load_local("db_faiss_index", embeddings, allow_dangerous_deserialization=True)
     docs = docsearch.similarity_search(question)
     metadata = ""
     for i in docs:
