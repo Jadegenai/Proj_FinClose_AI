@@ -33,6 +33,7 @@ from FewShotSettings import few_shot_settings
 from ZeroShotAnalyzeSettings import zero_shot_analyze_settings
 import UiPath_API_Queue_Load
 import prompts
+import countdown
 
 # Setup the Page
 jadeimage = Image.open("assets/jadeglobalsmall.png")
@@ -204,6 +205,14 @@ def format_amount(amount):
         return f"$ {amount}"
 
 
+@st.fragment(run_every="1s")
+def countdown_timer():
+    formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
+    st.markdown("Expected Close On")
+    st.subheader(formatted_last_bd)
+    st.markdown(f"In {remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}")
+
+
 def chat_history(CSV_FILE):
     try:
         chat_history_df = pd.read_csv(CSV_FILE)
@@ -212,6 +221,7 @@ def chat_history(CSV_FILE):
         chat_history_df = pd.DataFrame(columns=["User_Chat_History"])
         chat_history_df.to_csv(CSV_FILE, index=False)
         return chat_history_df
+
 
 def creds_entered():
     if len(st.session_state["streamlit_username"]) > 0 and len(st.session_state["streamlit_password"]) > 0:
@@ -289,6 +299,21 @@ def main():
                 st.session_state.button11 = 0
             if 'button12' not in st.session_state:
                 st.session_state.button12 = 0
+
+            if 'OverallProcess' not in st.session_state:
+                st.session_state.OverallProcess = 0
+            if 'pc1Process' not in st.session_state:
+                st.session_state.pc1Process = 0
+            if 'pc2Process' not in st.session_state:
+                st.session_state.pc2Process = 0
+            if 'pc3Process' not in st.session_state:
+                st.session_state.pc3Process = 0
+            if 'pc4Process' not in st.session_state:
+                st.session_state.pc4Process = 0
+            if 'pc5Process' not in st.session_state:
+                st.session_state.pc5Process = 0
+            if 'pc6Process' not in st.session_state:
+                st.session_state.pc6Process = 0
 
             # Setup the Widgets
             with st.sidebar:
@@ -381,20 +406,47 @@ def main():
                 dso_sql_result = run_sql_query(dso_sql_qry)
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
-                # # Outstanding Receivables Data
-                # out_sql_qry = "SELECT AMOUNT AS OUTSTANDING_RECEIVABLES_AMOUNT FROM DEMO_DB.SC_FINCLOSE.OUTSTANDING_RECEIVABLES;"
-                # out_sql_result = run_sql_query(out_sql_qry)
-                # out_df = pd.DataFrame(out_sql_result)
-                # out_df.columns = out_df.columns.str.replace('_', ' ')
 
                 # Dashboard Main Panel
-                col = st.columns((3), gap='medium')
+                col = st.columns(3, gap='medium')
                 # First Column
                 with col[0]:
+                    with st.container(border=True, height=380):
+                        countdown_timer()
                     global year_selected
                     year_selected = st.selectbox("Select a year :", options = year_list)
                 # Second Column
                 with col[1]:
+                    with st.container(border=True, height=380):
+
+                        # Status Bar for Each of the Period Close
+                        st.subheader(f"Status by PeriodClose    :  {st.session_state.OverallProcess}%")
+                        pc1 = st.progress(0, text="PeriodClose -3  :  0%")
+                        pc2 = st.progress(0, text="PeriodClose -2  :  0%")
+                        pc3 = st.progress(0, text="PeriodClose -1  :  0%")
+                        pc4 = st.progress(0, text="PeriodClose +1  :  0%")
+                        pc5 = st.progress(0, text="PeriodClose +2  :  0%")
+                        pc6 = st.progress(0, text="PeriodClose +3  :  0%")
+
+                        if st.session_state.button1 == 1:
+                            pc1.progress(st.session_state.pc1Process,
+                                         text=f"PeriodClose -3  :  {st.session_state.pc1Process}%")
+                        if st.session_state.button2 == 1 or st.session_state.button3 == 1:
+                            pc2.progress(st.session_state.pc2Process,
+                                         text=f"PeriodClose +1  :  {st.session_state.pc2Process}%")
+                        if st.session_state.button4 == 1 or st.session_state.button5 == 1:
+                            pc3.progress(st.session_state.pc3Process,
+                                         text=f"PeriodClose -2  :  {st.session_state.pc3Process}%")
+                        if st.session_state.button6 == 1 or st.session_state.button7 == 1 or st.session_state.button8 == 1:
+                            pc4.progress(st.session_state.pc4Process,
+                                         text=f"PeriodClose +2  :  {st.session_state.pc4Process}%")
+                        if st.session_state.button9 == 1 or st.session_state.button10 == 1 or st.session_state.button11 == 1:
+                            pc5.progress(st.session_state.pc5Process,
+                                         text=f"PeriodClose -1  :  {st.session_state.pc5Process}%")
+                        if st.session_state.button12 == 1:
+                            pc6.progress(st.session_state.pc6Process,
+                                         text=f"PeriodClose +3  :  {st.session_state.pc6Process}%")
+
                     global month_selected, prev_month
                     month_selected = st.selectbox("Select a month :", options = month_list)
                     if month_selected == 'January':
@@ -411,6 +463,8 @@ def main():
                         prev_month = 'May'
                 # Third Column
                 with col[2]:
+                    with st.container(border=False, height=380):
+                        st.markdown('')
                     st.markdown('')
                     st.markdown('')
                     st.markdown('')
@@ -684,6 +738,8 @@ def main():
                             if st.button("RUN ▶️", key="Create_Accounting_RUN"):
                                 st.session_state.button1 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Create Accounting')
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc1Process += 100
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
@@ -716,6 +772,8 @@ def main():
                             if st.button("RUN ▶️", key="GL_Transfer_RUN"):
                                 st.session_state.button2 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('GL Transfer')
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc2Process += 50
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
@@ -746,6 +804,8 @@ def main():
                             if st.button("RUN ▶️", key="Trial_Balance_Report_RUN"):
                                 st.session_state.button3 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Trial Balance Report')
+                                st.session_state.OverallProcess += 8.34
+                                st.session_state.pc2Process += 50
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
@@ -781,6 +841,8 @@ def main():
                             if st.button("RUN ▶️", key="Accounting_Reconciliation_RUN"):
                                 st.session_state.button4 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Reconciliation')
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc3Process += 50
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
@@ -814,6 +876,8 @@ def main():
                                     my_bar31.progress(percent_complete + 1,
                                                       text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button5 = 1
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc3Process += 50
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
 
                     with st.container(border=True, height=600):
@@ -837,6 +901,8 @@ def main():
                                     time.sleep(0.05)
                                     my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button6 = 1
+                                st.session_state.OverallProcess += 8.34
+                                st.session_state.pc4Process += 33.33
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
 
                         # Second Button
@@ -856,6 +922,8 @@ def main():
                             if st.button("RUN ▶️", key="Invoice_Aging_Check_RUN"):
                                 st.session_state.button7 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Invoice Aging')
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc4Process += 33.33
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
@@ -888,6 +956,8 @@ def main():
                                     time.sleep(0.05)
                                     my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button8 = 1
+                                st.session_state.OverallProcess += 8.33
+                                st.session_state.pc4Process += 33.34
                                 my_bar31.success('The Process has completed successfully!', icon="✅")
 
                     # Third horizontal layout
@@ -913,6 +983,8 @@ def main():
                                         time.sleep(0.05)
                                         my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button9 = 1
+                                    st.session_state.OverallProcess += 8.34
+                                    st.session_state.pc5Process += 33.33
                                     my_bar31.success('The Process has completed successfully!', icon="✅")
 
                             # Second Button
@@ -932,6 +1004,8 @@ def main():
                                 if st.button("RUN ▶️", key="Unaccounted_transaction_check_RUN"):
                                     st.session_state.button10 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Unaccounted Transaction Report')
+                                    st.session_state.OverallProcess += 8.33
+                                    st.session_state.pc5Process += 33.33
                                     for percent_complete in range(100):
                                         queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                         if queue_item_status in ('New', 'InProgress'):
@@ -962,6 +1036,8 @@ def main():
                                 if st.button("RUN ▶️", key="Exception_Correction_RUN"):
                                     st.session_state.button11 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Exception Processing')
+                                    st.session_state.OverallProcess += 8.33
+                                    st.session_state.pc5Process += 33.34
                                     for percent_complete in range(100):
                                         queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                         if queue_item_status in ('New', 'InProgress'):
@@ -996,6 +1072,8 @@ def main():
                                         time.sleep(0.05)
                                         my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button12 = 1
+                                    st.session_state.OverallProcess += 8.34
+                                    st.session_state.pc6Process += 100
                                     my_bar31.success('The Process has completed successfully!', icon="✅")
 
     except Exception as err:
