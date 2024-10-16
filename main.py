@@ -212,7 +212,7 @@ def countdown_timer():
     st.markdown("")
     st.markdown(f"<h5>Start On    -{formatted_first_bd}</h5>", unsafe_allow_html=True)
     st.markdown(f"<h5>Close On  -{formatted_last_bd}</h5>", unsafe_allow_html=True)
-    st.markdown(f"Close In **{remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}**")
+    st.markdown(f"<h6>Close in **{remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}**</h6>", unsafe_allow_html=True)
 
 
 def chat_history(CSV_FILE):
