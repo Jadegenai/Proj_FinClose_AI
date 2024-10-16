@@ -19,7 +19,7 @@ def last_business_day():
 
     current_date = pd.Timestamp.now().date()
     date_plus_5_working_days = current_date + pd.offsets.BDay(5)
-    return current_date.date(), date_plus_5_working_days.date()
+    return current_date, date_plus_5_working_days.date()
 
 
 def last_bus_day_countdown():
