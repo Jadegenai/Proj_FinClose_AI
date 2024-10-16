@@ -5,17 +5,21 @@ import streamlit as st
 
 
 def last_business_day():
-    # Get the current date and time
-    curr_timestamp = pd.Timestamp.now()
-    curr_year = curr_timestamp.year
-    curr_month = curr_timestamp.month
-    last_bus_date = pd.Timestamp(curr_year, curr_month, 1) + pd.offsets.MonthEnd(0)
-    # Adjust the date if it falls on a weekend (Saturday=5, Sunday=6)
-    while last_bus_date.weekday() > 4:
-        last_bus_date -= pd.DateOffset(days=1)
-    date_plus_3_working_days = last_bus_date + pd.offsets.BDay(3)
-    date_minus_3_working_days = last_bus_date - pd.offsets.BDay(3)
-    return date_minus_3_working_days.date(), date_plus_3_working_days.date()
+    # # Get the current date and time
+    # curr_timestamp = pd.Timestamp.now()
+    # curr_year = curr_timestamp.year
+    # curr_month = curr_timestamp.month
+    # last_bus_date = pd.Timestamp(curr_year, curr_month, 1) + pd.offsets.MonthEnd(0)
+    # # Adjust the date if it falls on a weekend (Saturday=5, Sunday=6)
+    # while last_bus_date.weekday() > 4:
+    #     last_bus_date -= pd.DateOffset(days=1)
+    # date_plus_3_working_days = last_bus_date + pd.offsets.BDay(3)
+    # date_minus_3_working_days = last_bus_date - pd.offsets.BDay(3)
+    # return date_minus_3_working_days.date(), date_plus_3_working_days.date()
+
+    current_date = pd.Timestamp.now().date()
+    date_plus_5_working_days = current_date + pd.offsets.BDay(5)
+    return current_date.date(), date_plus_5_working_days.date()
 
 
 def last_bus_day_countdown():
