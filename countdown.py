@@ -14,11 +14,13 @@ def last_business_day():
     while last_bus_date.weekday() > 4:
         last_bus_date -= pd.DateOffset(days=1)
     date_plus_3_working_days = last_bus_date + pd.offsets.BDay(3)
-    return date_plus_3_working_days.date()
+    date_minus_3_working_days = last_bus_date - pd.offsets.BDay(3)
+    return date_minus_3_working_days.date(), date_plus_3_working_days.date()
 
 
 def last_bus_day_countdown():
-    last_bus_day = last_business_day()
+    first_bus_day, last_bus_day = last_business_day()
+    formatted_first_bd = first_bus_day.strftime('%d-%b-%Y')
     formatted_last_bd = last_bus_day.strftime('%d-%b-%Y')
     # Convert current timestamp and last business day to datetime objects
     date_obj = datetime.combine(last_bus_day, datetime.min.time())
@@ -29,7 +31,7 @@ def last_bus_day_countdown():
     cd_hours = cd_total_seconds // 3600
     cd_minutes = (cd_total_seconds % 3600) // 60
     cd_seconds = cd_total_seconds % 60
-    return formatted_last_bd, cd_days, cd_hours, cd_minutes, cd_seconds
+    return formatted_first_bd, formatted_last_bd, cd_days, cd_hours, cd_minutes, cd_seconds
 
 # st.set_page_config()
 # ph = st.empty()
