@@ -208,13 +208,10 @@ def format_amount(amount):
 @st.fragment(run_every="1s")
 def countdown_timer():
     formatted_first_bd, formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
-    st.subheader(":green[Overall Status - **GREEN**]",divider='rainbow')
+    st.subheader("Overall Status - :green[**GREEN**]",divider='rainbow')
     st.markdown("")
-    st.markdown(f"<h5><span style='color:#2874a6;'>Expected Start On    -</span> <span style='color:#b9770e;'>{formatted_first_bd}</span></h5>",
-                unsafe_allow_html=True)
-    st.markdown(f"<h5><span style='color:#148f77;'>Expected Close On  -</span> <span style='color:#af601a;'>{formatted_last_bd}</span></h5>",
-        unsafe_allow_html=True)
-
+    st.markdown(f"<h5>Start On    -{formatted_first_bd}</h5>", unsafe_allow_html=True)
+    st.markdown(f"<h5>Close On  -{formatted_last_bd}</h5>", unsafe_allow_html=True)
     st.markdown(f"Close In **{remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}**")
 
 
@@ -419,7 +416,7 @@ def main():
                 with col1[1]:
                     with st.container(border=True, height=380):
                         # Status Bar for Each of the Period Close
-                        st.subheader(f":violet[Status by Function : {st.session_state.OverallProcess}%]", divider='rainbow')
+                        st.subheader(f"Status by Function : {st.session_state.OverallProcess}%", divider='rainbow')
                         st.markdown("")
                         AP = st.progress(0, text="Accounts Payable  -  0%")
                         AR = st.progress(0, text="Accounts Receivable  -  0%")
