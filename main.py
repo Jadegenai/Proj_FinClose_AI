@@ -205,7 +205,7 @@ def format_amount(amount):
         return f"$ {amount}"
 
 
-@st.fragment(run_every="1000s")
+@st.fragment(run_every="1s")
 def countdown_timer():
     formatted_first_bd, formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
     st.subheader(":green[Overall Status - **GREEN**]",divider='rainbow')
