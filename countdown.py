@@ -16,7 +16,6 @@ def last_business_day():
     # date_plus_3_working_days = last_bus_date + pd.offsets.BDay(3)
     # date_minus_3_working_days = last_bus_date - pd.offsets.BDay(3)
     # return date_minus_3_working_days.date(), date_plus_3_working_days.date()
-
     current_date = pd.Timestamp.now().date()
     date_plus_5_working_days = current_date + pd.offsets.BDay(5)
     return current_date, date_plus_5_working_days.date()
