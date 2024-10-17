@@ -207,7 +207,7 @@ def format_amount(amount):
         return f"$ {amount}"
 
 
-# @st.fragment(run_every="1s")
+@st.fragment(run_every="1s")
 def countdown_timer():
     if st.session_state.master_button == 1:
         formatted_first_bd, formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
