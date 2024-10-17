@@ -445,7 +445,7 @@ def main():
                             st.progress(100, text="Tax  -  100%")
                         else:
                             # Status Bar for Each of the Period Close
-                            st.subheader(f"Status by Function : {st.session_state.OverallProcess}%", divider='rainbow')
+                            st.subheader(f"Status by Function : {round(st.session_state.OverallProcess, 2)}%", divider='rainbow')
                             st.markdown("")
                             AP = st.progress(0, text="Accounts Payable  -  0%")
                             AR = st.progress(0, text="Accounts Receivable  -  0%")
