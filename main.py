@@ -424,7 +424,7 @@ def main():
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
 
-                if st.button("Start_Month_End_Process ▶️", key="Start_Month_End_Process", type="primary"):
+                if st.button("Start Month End Process ▶️", key="Start_Month_End_Process", type="primary"):
                     st.session_state.master_button = 1
 
                 # Dashboard Main Panel
