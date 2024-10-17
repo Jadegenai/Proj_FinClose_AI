@@ -118,10 +118,12 @@ def few_shot():
                                       example_template=example_template, example_variables=example_variables)
     return fewShot
 
+
 # Initializing the Large Language Model
 def large_language_model(model_name):
     llm = ChatOpenAI(model_name=model_name, temperature=0, max_tokens=2000, openai_api_key=api_key)
     return llm
+
 
 # Function for Text to Sql
 def text_to_sql(user_question):
@@ -205,14 +207,23 @@ def format_amount(amount):
         return f"$ {amount}"
 
 
-@st.fragment(run_every="1s")
+# @st.fragment(run_every="1s")
 def countdown_timer():
-    formatted_first_bd, formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
-    st.subheader("Overall Status - :green[**GREEN**]",divider='rainbow')
-    st.markdown("")
-    st.markdown(f"<h5>Start On    -{formatted_first_bd}</h5>", unsafe_allow_html=True)
-    st.markdown(f"<h5>Close On  -{formatted_last_bd}</h5>", unsafe_allow_html=True)
-    st.markdown(f"<h6>Close in {remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}</h6>", unsafe_allow_html=True)
+    if st.session_state.master_button == 1:
+        formatted_first_bd, formatted_last_bd, remain_days, remain_hours, remain_minutes, remain_seconds = countdown.last_bus_day_countdown()
+        st.subheader("Overall Status - :green[**GREEN**]", divider='rainbow')
+        st.markdown("")
+        st.markdown(f"<h5>Start On    - {formatted_first_bd}</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h5>Close On  - {formatted_last_bd}</h5>", unsafe_allow_html=True)
+        st.markdown(
+            f"<h6>Close in {remain_days} Days {remain_hours:02d}:{remain_minutes:02d}:{remain_seconds:02d}</h6>",
+            unsafe_allow_html=True)
+    else:
+        st.subheader("Overall Status - :green[**GREEN**]", divider='rainbow')
+        st.markdown("")
+        st.markdown(f"<h5>Start On    - 25-Sep-2024</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h5>Close On  - 08-Oct-2024</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h6>Close in 0 Days 00:00:00</h6>", unsafe_allow_html=True)
 
 
 def chat_history(CSV_FILE):
@@ -234,6 +245,7 @@ def creds_entered():
             st.session_state["authenticated"] = False
             st.error("Invalid Username/Password ")
 
+
 def authenticate_user():
     if "authenticated" not in st.session_state:
         buff, col, buff2 = st.columns([1, 1, 1])
@@ -249,6 +261,7 @@ def authenticate_user():
             col.text_input(label="Password:", value="", key="streamlit_password", type="password",
                            on_change=creds_entered)
             return False
+
 
 def main():
     try:
@@ -277,6 +290,8 @@ def main():
                 st.session_state.messages1 = []
 
             # Workflow Status
+            if 'master_button' not in st.session_state:
+                st.session_state.master_button = 0
             if 'button1' not in st.session_state:
                 st.session_state.button1 = 0
             if 'button2' not in st.session_state:
@@ -325,7 +340,8 @@ def main():
             with st.sidebar:
                 select_source = option_menu(menu_title="Menu",
                                             menu_icon="list",
-                                            options=['Dashboard', 'Query Financial Data', 'Trigger Month End', 'Query Month End Reports'],
+                                            options=['Dashboard', 'Query Financial Data', 'Trigger Month End',
+                                                     'Query Month End Reports'],
                                             icons=['graph-up-arrow', 'database', 'robot', 'filetype-pdf'],
                                             default_index=0)
 
@@ -385,7 +401,8 @@ def main():
                 # Margin Data
                 df_merged = pd.merge(selling_df, buying_df, on=['YEAR MONTH', 'Year', 'MonthName'])
                 df_merged['Margin Amount'] = df_merged['REVENUE AMOUNT'] - df_merged['EXPENSES AMOUNT']
-                df_merged['Margin Amount'] = round((((df_merged['REVENUE AMOUNT'] - df_merged['EXPENSES AMOUNT']) / df_merged['REVENUE AMOUNT']) * 100), 2)
+                df_merged['Margin Amount'] = round((((df_merged['REVENUE AMOUNT'] - df_merged['EXPENSES AMOUNT']) /
+                                                     df_merged['REVENUE AMOUNT']) * 100), 2)
                 df_merged['Month_Num'] = df_merged['MonthName'].map(month_map)
                 df_margin = df_merged[['YEAR MONTH', 'Margin Amount', 'Year', 'Month_Num']]
 
@@ -407,6 +424,9 @@ def main():
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
 
+                if st.button("Start_Month_End_Process ▶️", key="Start_Month_End_Process", type="primary"):
+                    st.session_state.master_button = 1
+
                 # Dashboard Main Panel
                 col1 = st.columns(2, gap='medium')
                 with col1[0]:
@@ -415,40 +435,49 @@ def main():
                 # Second Column
                 with col1[1]:
                     with st.container(border=True, height=380):
-                        # Status Bar for Each of the Period Close
-                        st.subheader(f"Status by Function : {st.session_state.OverallProcess}%", divider='rainbow')
-                        st.markdown("")
-                        AP = st.progress(0, text="Accounts Payable  -  0%")
-                        AR = st.progress(0, text="Accounts Receivable  -  0%")
-                        GL = st.progress(0, text="General Ledger  -  0%")
-                        INV = st.progress(0, text="Inventory  -  0%")
-                        TAX = st.progress(0, text="Tax  -  0%")
+                        if st.session_state.master_button == 0:
+                            st.subheader(f"Status by Function : 100%", divider='rainbow')
+                            st.markdown("")
+                            st.progress(100, text="Accounts Payable  -  100%")
+                            st.progress(100, text="Accounts Receivable  -  100%")
+                            st.progress(100, text="General Ledger  -  100%")
+                            st.progress(100, text="Inventory  -  100%")
+                            st.progress(100, text="Tax  -  100%")
+                        else:
+                            # Status Bar for Each of the Period Close
+                            st.subheader(f"Status by Function : {st.session_state.OverallProcess}%", divider='rainbow')
+                            st.markdown("")
+                            AP = st.progress(0, text="Accounts Payable  -  0%")
+                            AR = st.progress(0, text="Accounts Receivable  -  0%")
+                            GL = st.progress(0, text="General Ledger  -  0%")
+                            INV = st.progress(0, text="Inventory  -  0%")
+                            TAX = st.progress(0, text="Tax  -  0%")
 
-                        if st.session_state.button1 == 1 or st.session_state.button3 == 1 or st.session_state.button10 == 1 or st.session_state.button12 == 1:
-                            AP.progress(st.session_state.AP_Process,
-                                        text=f"Accounts Payable  :  {st.session_state.AP_Process}%")
-                        if st.session_state.button2 == 1 or st.session_state.button5 == 1 or st.session_state.button6 == 1 or st.session_state.button8 == 1:
-                            AR.progress(st.session_state.AR_Process,
-                                        text=f"Accounts Receivable  :  {st.session_state.AR_Process}%")
-                        if st.session_state.button4 == 1 or st.session_state.button7 == 1:
-                            GL.progress(st.session_state.GL_Process,
-                                        text=f"General Ledger  :  {st.session_state.GL_Process}%")
-                        if st.session_state.button9 == 1:
-                            INV.progress(st.session_state.INV_Process,
-                                         text=f"Inventory  :  {st.session_state.INV_Process}%")
-                        if st.session_state.button11 == 1:
-                            TAX.progress(st.session_state.TAX_Process,
-                                         text=f"Tax  :  {st.session_state.TAX_Process}%")
+                            if st.session_state.button1 == 1 or st.session_state.button3 == 1 or st.session_state.button10 == 1 or st.session_state.button12 == 1:
+                                AP.progress(st.session_state.AP_Process,
+                                            text=f"Accounts Payable  :  {st.session_state.AP_Process}%")
+                            if st.session_state.button2 == 1 or st.session_state.button5 == 1 or st.session_state.button6 == 1 or st.session_state.button8 == 1:
+                                AR.progress(st.session_state.AR_Process,
+                                            text=f"Accounts Receivable  :  {st.session_state.AR_Process}%")
+                            if st.session_state.button4 == 1 or st.session_state.button7 == 1:
+                                GL.progress(st.session_state.GL_Process,
+                                            text=f"General Ledger  :  {st.session_state.GL_Process}%")
+                            if st.session_state.button9 == 1:
+                                INV.progress(st.session_state.INV_Process,
+                                             text=f"Inventory  :  {st.session_state.INV_Process}%")
+                            if st.session_state.button11 == 1:
+                                TAX.progress(st.session_state.TAX_Process,
+                                             text=f"Tax  :  {st.session_state.TAX_Process}%")
 
                 col = st.columns(3, gap='medium')
                 # First Column
                 with col[0]:
                     global year_selected
-                    year_selected = st.selectbox("Select a year :", options = year_list)
+                    year_selected = st.selectbox("Select a year :", options=year_list)
                 # Second Column
                 with col[1]:
                     global month_selected, prev_month
-                    month_selected = st.selectbox("Select a month :", options = month_list)
+                    month_selected = st.selectbox("Select a month :", options=month_list)
                     if month_selected == 'January':
                         prev_month = 'January'
                     elif month_selected == 'February':
@@ -489,7 +518,7 @@ def main():
                     fig = px.bar(selling_df,
                                  x=selling_df.columns[0],
                                  y=selling_df.columns[1],
-                                 #color=selling_df.columns[1]
+                                 # color=selling_df.columns[1]
                                  )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
@@ -513,7 +542,7 @@ def main():
                     fig = px.bar(buying_df,
                                  x=buying_df.columns[0],
                                  y=buying_df.columns[1],
-                                 #color=buying_df.columns[1]
+                                 # color=buying_df.columns[1]
                                  )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
@@ -545,14 +574,16 @@ def main():
                     st.subheader("Margin:", divider='rainbow')
                     prev_margin_data = round((((prev_sell_data - prev_buy_data) / prev_buy_data) * 100), 2)
                     curr_margin_data = round((((curr_sell_data - curr_buy_data) / curr_buy_data) * 100), 2)
-                    margin_data_diff = str(round((((curr_margin_data - prev_margin_data) / prev_margin_data) * 100), 2)) + '%'
-                    st.metric(label=str(year_selected) + " " + str(month_selected), value=str(curr_margin_data) + '%', delta=margin_data_diff)
+                    margin_data_diff = str(
+                        round((((curr_margin_data - prev_margin_data) / prev_margin_data) * 100), 2)) + '%'
+                    st.metric(label=str(year_selected) + " " + str(month_selected), value=str(curr_margin_data) + '%',
+                              delta=margin_data_diff)
                     # Bar Graph
                     fig = px.bar(df_margin,
                                  x=df_margin.columns[0],
                                  y=df_margin.columns[1],
-                                 #color=df_margin.columns[1]
-                                  )
+                                 # color=df_margin.columns[1]
+                                 )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
             elif select_source == 'Query Financial Data':
@@ -586,7 +617,8 @@ def main():
                 chat_df_1.to_csv(his_file_1, index=False)
 
                 ### Add a button to reset the User Chat History
-                chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary", key="Clear_Chat_History")
+                chat_reset = st.sidebar.button(":orange[Clear Chat History]", type="secondary",
+                                               key="Clear_Chat_History")
                 if chat_reset:
                     chat_df = pd.DataFrame(columns=["User_Chat_History"])
                     chat_df.to_csv(his_file_1, index=False)
@@ -618,7 +650,8 @@ def main():
                                     plot_chart(df_data)
                             with st.expander("Table Output:"):
                                 st.markdown(
-                                    tabulate(df_data, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                                    tabulate(df_data, tablefmt="html", headers=headers, floatfmt="0f",
+                                             showindex=False),
                                     unsafe_allow_html=True)
                         else:
                             st.markdown(df_str)
@@ -647,8 +680,9 @@ def main():
                             df.columns = df.columns.str.replace('_', ' ')
                             headers = df.columns
                             with st.expander("Table Output:"):
-                                st.markdown(tabulate(df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
-                                            unsafe_allow_html=True)
+                                st.markdown(
+                                    tabulate(df, tablefmt="html", headers=headers, floatfmt=".2f", showindex=False),
+                                    unsafe_allow_html=True)
                             with st.expander("The SQL query used for above question is:"):
                                 st.write(sql_query)
                         out_data = df.to_csv(sep=',', index=False) + "<separator>" + sql_result_analysis
@@ -721,18 +755,11 @@ def main():
                         st.subheader("PeriodClose -3", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Create Accounting**]")
-                        if st.session_state.button1 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button1 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Create_Accounting_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button1 == 1:
-                            if st.button("RUN ▶️", key="Create_Accounting_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button1 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar1 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Create_Accounting_RUN"):
                                 st.session_state.button1 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Create Accounting')
@@ -741,32 +768,25 @@ def main():
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
-                                        my_bar31.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                        my_bar1.progress(percent_complete + 1,
+                                                         text="Operation is in progress. Please wait for sometime...")
                                         time.sleep(2)
                                     elif queue_item_status == 'Successful':
-                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        my_bar1.success('The Process has completed successfully!', icon="✅")
                                         break
                                     else:
-                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        my_bar1.error('Something went wrong. Please check the process', icon="⚠️")
                                         break
 
                     with st.container(border=True, height=600):
                         st.subheader("PeriodClose +1", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**GL Transfer**]")
-                        if st.session_state.button2 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button2 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="GL_Transfer_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button2 == 1:
-                            if st.button("RUN ▶️", key="GL_Transfer_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button2 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar2 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="GL_Transfer_RUN"):
                                 st.session_state.button2 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('GL Transfer')
@@ -775,30 +795,23 @@ def main():
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
-                                        my_bar31.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                        my_bar2.progress(percent_complete + 1,
+                                                         text="Operation is in progress. Please wait for sometime...")
                                         time.sleep(2)
                                     elif queue_item_status == 'Successful':
-                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        my_bar2.success('The Process has completed successfully!', icon="✅")
                                         break
                                     else:
-                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        my_bar2.error('Something went wrong. Please check the process', icon="⚠️")
                                         break
 
                         # Second Button
                         st.markdown(":grey-background[**Trial Balance Report**]")
-                        if st.session_state.button3 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button3 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Trial_Balance_Report_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button3 == 1:
-                            if st.button("RUN ▶️", key="Trial_Balance_Report_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button3 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar3 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Trial_Balance_Report_RUN"):
                                 st.session_state.button3 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Trial Balance Report')
@@ -807,14 +820,14 @@ def main():
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
-                                        my_bar31.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                        my_bar3.progress(percent_complete + 1,
+                                                         text="Operation is in progress. Please wait for sometime...")
                                         time.sleep(2)
                                     elif queue_item_status == 'Successful':
-                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        my_bar3.success('The Process has completed successfully!', icon="✅")
                                         break
                                     else:
-                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        my_bar3.error('Something went wrong. Please check the process', icon="⚠️")
                                         break
 
                 # Second horizontal layout
@@ -824,18 +837,11 @@ def main():
                         st.subheader("PeriodClose -2", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Accounting Reconciliation**]")
-                        if st.session_state.button4 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button4 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Accounting_Reconciliation_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button4 == 1:
-                            if st.button("RUN ▶️", key="Accounting_Reconciliation_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button4 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar4 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Accounting_Reconciliation_RUN"):
                                 st.session_state.button4 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Reconciliation')
@@ -844,79 +850,58 @@ def main():
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
-                                        my_bar31.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                        my_bar4.progress(percent_complete + 1,
+                                                         text="Operation is in progress. Please wait for sometime...")
                                         time.sleep(2)
                                     elif queue_item_status == 'Successful':
-                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        my_bar4.success('The Process has completed successfully!', icon="✅")
                                         break
                                     else:
-                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        my_bar4.error('Something went wrong. Please check the process', icon="⚠️")
                                         break
                         # Second Button
                         st.markdown(":grey-background[**IT Accrual check**]")
-                        if st.session_state.button5 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button5 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="IT_Accrual_check_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button5 == 1:
-                            if st.button("RUN ▶️", key="IT_Accrual_check_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1,
-                                                      text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button5 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar5 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="IT_Accrual_check_RUN"):
                                 for percent_complete in range(100):
                                     time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1,
-                                                      text="Operation is in progress. Please wait for sometime...")
+                                    my_bar5.progress(percent_complete + 1,
+                                                     text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button5 = 1
                                 st.session_state.OverallProcess += 8.33
                                 st.session_state.AR_Process += 25
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                my_bar5.success('The Process has completed successfully!', icon="✅")
 
                     with st.container(border=True, height=600):
                         st.subheader("PeriodClose +2", divider='rainbow')
                         # First Button
                         st.markdown(":grey-background[**Inventory Recon**]")
-                        if st.session_state.button6 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button6 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Inventory_Recon_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button6 == 1:
-                            if st.button("RUN ▶️", key="Inventory_Recon_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button6 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar6 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Inventory_Recon_RUN"):
                                 for percent_complete in range(100):
                                     time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    my_bar6.progress(percent_complete + 1,
+                                                     text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button6 = 1
                                 st.session_state.OverallProcess += 8.34
                                 st.session_state.AR_Process += 25
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                my_bar6.success('The Process has completed successfully!', icon="✅")
 
                         # Second Button
                         st.markdown(":grey-background[**Invoice Aging Check**]")
-                        if st.session_state.button7 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button7 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Invoice_Aging_Check_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button7 == 1:
-                            if st.button("RUN ▶️", key="Invoice_Aging_Check_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button7 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar7 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Invoice_Aging_Check_RUN"):
                                 st.session_state.button7 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Invoice Aging')
@@ -925,38 +910,32 @@ def main():
                                 for percent_complete in range(100):
                                     queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                     if queue_item_status in ('New', 'InProgress'):
-                                        my_bar31.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                        my_bar7.progress(percent_complete + 1,
+                                                         text="Operation is in progress. Please wait for sometime...")
                                         time.sleep(2)
                                     elif queue_item_status == 'Successful':
-                                        my_bar31.success('The Process has completed successfully!', icon="✅")
+                                        my_bar7.success('The Process has completed successfully!', icon="✅")
                                         break
                                     else:
-                                        my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                        my_bar7.error('Something went wrong. Please check the process', icon="⚠️")
                                         break
 
                         # Third Button
                         st.markdown(":grey-background[**Tax and Treasury Analysis**]")
-                        if st.session_state.button8 == 1:
-                            my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                        if st.session_state.button8 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RERUN", disabled=True)
                         else:
-                            my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                        if st.session_state.button8 == 1:
-                            if st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RERUN", disabled = True):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                st.session_state.button8 = 1
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
-                        else:
+                            my_bar8 = st.info("Process yet to be Start", icon="ℹ️")
                             if st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RUN"):
                                 for percent_complete in range(100):
                                     time.sleep(0.05)
-                                    my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                    my_bar8.progress(percent_complete + 1,
+                                                     text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button8 = 1
                                 st.session_state.OverallProcess += 8.33
                                 st.session_state.AR_Process += 25
-                                my_bar31.success('The Process has completed successfully!', icon="✅")
+                                my_bar8.success('The Process has completed successfully!', icon="✅")
 
                     # Third horizontal layout
                     with col3:
@@ -964,41 +943,28 @@ def main():
                             st.subheader("PeriodClose -1", divider='rainbow')
                             # First Button
                             st.markdown(":grey-background[**Open PO and GL period**]")
-                            if st.session_state.button9 == 1:
-                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            if st.session_state.button9 == 1 or st.session_state.master_button == 0:
+                                st.success('The Process has completed successfully!', icon="✅")
+                                st.button("RUN ▶️", key="Open_PO_and_GL_period_RERUN", disabled=True)
                             else:
-                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.session_state.button9 == 1:
-                                if st.button("RUN ▶️", key="Open_PO_and_GL_period_RERUN", disabled = True):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                    st.session_state.button9 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
-                            else:
+                                my_bar9 = st.info("Process yet to be Start", icon="ℹ️")
                                 if st.button("RUN ▶️", key="Open_PO_and_GL_period_RUN"):
                                     for percent_complete in range(100):
                                         time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                        my_bar9.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button9 = 1
                                     st.session_state.OverallProcess += 8.34
                                     st.session_state.INV_Process += 100
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                                    my_bar9.success('The Process has completed successfully!', icon="✅")
 
                             # Second Button
                             st.markdown(":grey-background[**Unaccounted transaction check**]")
-                            if st.session_state.button10 == 1:
-                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            if st.session_state.button10 == 1 or st.session_state.master_button == 0:
+                                st.success('The Process has completed successfully!', icon="✅")
+                                st.button("RUN ▶️", key="Unaccounted_transaction_check_RERUN", disabled=True)
                             else:
-                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.session_state.button10 == 1:
-                                if st.button("RUN ▶️", key="Unaccounted_transaction_check_RERUN", disabled = True):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                    st.session_state.button10 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
-                            else:
+                                my_bar10 = st.info("Process yet to be Start", icon="ℹ️")
                                 if st.button("RUN ▶️", key="Unaccounted_transaction_check_RUN"):
                                     st.session_state.button10 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Unaccounted Transaction Report')
@@ -1007,30 +973,23 @@ def main():
                                     for percent_complete in range(100):
                                         queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                         if queue_item_status in ('New', 'InProgress'):
-                                            my_bar31.progress(percent_complete + 1,
+                                            my_bar10.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
                                             time.sleep(2)
                                         elif queue_item_status == 'Successful':
-                                            my_bar31.success('The Process has completed successfully!', icon="✅")
+                                            my_bar10.success('The Process has completed successfully!', icon="✅")
                                             break
                                         else:
-                                            my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                            my_bar10.error('Something went wrong. Please check the process', icon="⚠️")
                                             break
 
                             # Third Button
                             st.markdown(":grey-background[**Exception Correction**]")
-                            if st.session_state.button11 == 1:
-                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            if st.session_state.button11 == 1 or st.session_state.master_button == 0:
+                                st.success('The Process has completed successfully!', icon="✅")
+                                st.button("RUN ▶️", key="Exception_Correction_RERUN", disabled=True)
                             else:
-                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.session_state.button11 == 1:
-                                if st.button("RUN ▶️", key="Exception_Correction_RERUN", disabled = True):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                    st.session_state.button11 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
-                            else:
+                                my_bar11 = st.info("Process yet to be Start", icon="ℹ️")
                                 if st.button("RUN ▶️", key="Exception_Correction_RUN"):
                                     st.session_state.button11 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Exception Processing')
@@ -1039,40 +998,34 @@ def main():
                                     for percent_complete in range(100):
                                         queue_item_status, queue_item_progress = UiPath_API_Queue_Load.read_status_in_queue()
                                         if queue_item_status in ('New', 'InProgress'):
-                                            my_bar31.progress(percent_complete + 1,
+                                            my_bar11.progress(percent_complete + 1,
                                                               text="Operation is in progress. Please wait for sometime...")
                                             time.sleep(2)
                                         elif queue_item_status == 'Successful':
-                                            my_bar31.success('The Process has completed successfully!', icon="✅")
+                                            my_bar11.success('The Process has completed successfully!', icon="✅")
                                             break
                                         else:
-                                            my_bar31.error('Something went wrong. Please check the process', icon="⚠️")
+                                            my_bar11.error('Something went wrong. Please check the process', icon="⚠️")
                                             break
 
                         with st.container(border=True, height=600):
                             st.subheader("PeriodClose +3", divider='rainbow')
                             # First Button
                             st.markdown(":grey-background[**Close Period**]")
-                            if st.session_state.button12 == 1:
-                                my_bar31 = st.success('The Process has completed successfully!', icon="✅")
+                            if st.session_state.button12 == 1 or st.session_state.master_button == 0:
+                                st.success('The Process has completed successfully!', icon="✅")
+                                st.button("RUN ▶️", key="Close_Period_RERUN", disabled=True)
                             else:
-                                my_bar31 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.session_state.button12 == 1:
-                                if st.button("RUN ▶️", key="Close_Period_RERUN", disabled = True):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
-                                    st.session_state.button12 = 1
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
-                            else:
+                                my_bar12 = st.info("Process yet to be Start", icon="ℹ️")
                                 if st.button("RUN ▶️", key="Close_Period_RUN"):
                                     for percent_complete in range(100):
                                         time.sleep(0.05)
-                                        my_bar31.progress(percent_complete + 1, text="Operation is in progress. Please wait for sometime...")
+                                        my_bar12.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
                                     st.session_state.button12 = 1
                                     st.session_state.OverallProcess += 8.34
                                     st.session_state.AP_Process += 25
-                                    my_bar31.success('The Process has completed successfully!', icon="✅")
+                                    my_bar12.success('The Process has completed successfully!', icon="✅")
 
     except Exception as err:
         with st.chat_message("assistant"):
@@ -1081,6 +1034,7 @@ def main():
             err_msg = "Something Went Wrong - " + str(err)
             st.markdown(err_msg)
             st.session_state.messages.append({"role": "assistant", "content": err_msg})
+
 
 if __name__ == "__main__":
     main()
