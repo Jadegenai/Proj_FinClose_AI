@@ -818,8 +818,9 @@ def main():
                 # First horizontal layout
                 with col1:
                     # Create a container for the buttons
-                    with st.container(border=True, height=260):
-                        st.subheader("Workday -3", divider='rainbow')
+                    with st.container(border=True, height=600):
+                        st.subheader("PeriodClose -3", divider='rainbow')
+                        # First Button
                         st.markdown(":grey-background[**Review the Tax Forecast**]")
                         if st.session_state.button13 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
@@ -833,9 +834,6 @@ def main():
                                                       text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button13 = 1
                                 my_bar13.success('The Process has completed successfully!', icon="✅")
-                    with st.container(border=True, height=600):
-                        st.subheader("PeriodClose -3", divider='rainbow')
-                        # First Button
                         st.markdown(":grey-background[**Create Accounting**]")
                         if st.session_state.button1 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
@@ -863,6 +861,19 @@ def main():
                     with st.container(border=True, height=600):
                         st.subheader("PeriodClose +1", divider='rainbow')
                         # First Button
+                        st.markdown(":grey-background[**Update Margin analysis for Tax provision**]")
+                        if st.session_state.button15 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="WD_1_RERUN", disabled=True)
+                        else:
+                            my_bar15 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.button("RUN ▶️", key="WD_1_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar15.progress(percent_complete + 1,
+                                                      text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button15 = 1
+                                my_bar15.success('The Process has completed successfully!', icon="✅")
                         st.markdown(":grey-background[**GL Transfer**]")
                         if st.session_state.button2 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
@@ -915,8 +926,9 @@ def main():
                 # Second horizontal layout
                 with col2:
                     # Create a container for the buttons
-                    with st.container(border=True, height=260):
-                        st.subheader("Workday -2", divider='rainbow')
+                    with st.container(border=True, height=600):
+                        st.subheader("PeriodClose -2", divider='rainbow')
+                        # First Button
                         st.markdown(":grey-background[**Revenue and Margin forecasted entries in Adaptive**]")
                         if st.session_state.button14 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
@@ -930,9 +942,6 @@ def main():
                                                       text="Operation is in progress. Please wait for sometime...")
                                 st.session_state.button14 = 1
                                 my_bar14.success('The Process has completed successfully!', icon="✅")
-                    with st.container(border=True, height=600):
-                        st.subheader("PeriodClose -2", divider='rainbow')
-                        # First Button
                         st.markdown(":grey-background[**Accounting Reconciliation**]")
                         if st.session_state.button4 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
@@ -1036,21 +1045,6 @@ def main():
 
                     # Third horizontal layout
                     with col3:
-                        with st.container(border=True, height=260):
-                            st.subheader("Workday -1", divider='rainbow')
-                            st.markdown(":grey-background[**Update Margin analysis for Tax provision**]")
-                            if st.session_state.button15 == 1 or st.session_state.master_button == 0:
-                                st.success('The Process has completed successfully!', icon="✅")
-                                st.button("RUN ▶️", key="WD_1_RERUN", disabled=True)
-                            else:
-                                my_bar15 = st.info("Process yet to be Start", icon="ℹ️")
-                                if st.button("RUN ▶️", key="WD_1_RUN"):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar15.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
-                                    st.session_state.button15 = 1
-                                    my_bar15.success('The Process has completed successfully!', icon="✅")
                         with st.container(border=True, height=600):
                             st.subheader("PeriodClose -1", divider='rainbow')
                             # First Button
