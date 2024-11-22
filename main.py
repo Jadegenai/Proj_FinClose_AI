@@ -316,6 +316,12 @@ def main():
                 st.session_state.button11 = 0
             if 'button12' not in st.session_state:
                 st.session_state.button12 = 0
+            if 'button13' not in st.session_state:
+                st.session_state.button13 = 0
+            if 'button14' not in st.session_state:
+                st.session_state.button14 = 0
+            if 'button15' not in st.session_state:
+                st.session_state.button15 = 0
 
             if 'OverallProcess' not in st.session_state:
                 st.session_state.OverallProcess = 0
@@ -424,6 +430,32 @@ def main():
                 dso_df = pd.DataFrame(dso_sql_result)
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
 
+                # Open PO
+                open_PO_qry = """SELECT
+                                    RELEVANT_PERIOD,
+                                    NUMBER_OF_POS,
+                                    TOTAL_AMOUNT,
+                                    ACTION
+                                FROM DEMO_DB.SC_FINCLOSE.OPEN_PURCHASE_ORDERS;"""
+
+                # Invoices WIP
+                invoices_WIP_qry = """SELECT
+                                    RELEVANT_PERIOD,
+                                    TYPE_OF_INVOICES,
+                                    TOTAL_COUNT,
+                                    AMOUNT,
+                                    ACTION
+                                FROM DEMO_DB.SC_FINCLOSE.INVOICES_WORK_IN_PROGRESS;"""
+
+                # Unbilled Revenue
+                unbilled_revenue_qry = """SELECT
+                                        RELEVANT_PERIOD,
+                                        CUSTOMER,
+                                        AMOUNT,
+                                        ACTION,
+                                        COMMENTS
+                                    FROM DEMO_DB.SC_FINCLOSE.UNBILLED_REVENUE;"""
+
                 if st.button("Start Month End Process ▶️", key="Start_Month_End_Process", type="primary"):
                     st.session_state.master_button = 1
 
@@ -468,6 +500,41 @@ def main():
                             if st.session_state.button11 == 1:
                                 TAX.progress(st.session_state.TAX_Process,
                                              text=f"Tax  :  {st.session_state.TAX_Process}%")
+
+                col2 = st.columns(3, gap='medium')
+                with col2[0]:
+                    with st.container(border=True, height=400):
+                        open_PO_result = run_sql_query(open_PO_qry)
+                        open_PO_df = pd.DataFrame(open_PO_result)
+                        open_PO_df.columns = open_PO_df.columns.str.replace('_', ' ')
+                        open_PO_headers = open_PO_df.columns
+                        st.subheader("Open Purchase Orders:", divider='rainbow')
+                        st.markdown(
+                            tabulate(open_PO_df, tablefmt="html", headers=open_PO_headers, floatfmt=".2f",
+                                     showindex=False),
+                            unsafe_allow_html=True)
+                with col2[1]:
+                    with st.container(border=True, height=400):
+                        invoices_WIP_result = run_sql_query(invoices_WIP_qry)
+                        invoices_WIP_df = pd.DataFrame(invoices_WIP_result)
+                        invoices_WIP_df.columns = invoices_WIP_df.columns.str.replace('_', ' ')
+                        invoices_WIP_headers = invoices_WIP_df.columns
+                        st.subheader("Invoices Work in Progress:", divider='rainbow')
+                        st.markdown(
+                            tabulate(invoices_WIP_df, tablefmt="html", headers=invoices_WIP_headers, floatfmt=".2f",
+                                     showindex=False),
+                            unsafe_allow_html=True)
+                with col2[2]:
+                    with st.container(border=True, height=400):
+                        unbilled_revenue_result = run_sql_query(unbilled_revenue_qry)
+                        unbilled_revenue_df = pd.DataFrame(unbilled_revenue_result)
+                        unbilled_revenue_df.columns = unbilled_revenue_df.columns.str.replace('_', ' ')
+                        unbilled_revenue_headers = unbilled_revenue_df.columns
+                        st.subheader("Unbilled Revenue:", divider='rainbow')
+                        st.markdown(
+                            tabulate(unbilled_revenue_df, tablefmt="html", headers=unbilled_revenue_headers,
+                                     floatfmt=".2f", showindex=False),
+                            unsafe_allow_html=True)
 
                 col = st.columns(3, gap='medium')
                 # First Column
@@ -751,6 +818,21 @@ def main():
                 # First horizontal layout
                 with col1:
                     # Create a container for the buttons
+                    with st.container(border=True, height=260):
+                        st.subheader("Workday -3", divider='rainbow')
+                        st.markdown(":grey-background[**Review the Tax Forecast**]")
+                        if st.session_state.button13 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="Review_the_Tax_Forecast_RERUN", disabled=True)
+                        else:
+                            my_bar13 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.button("RUN ▶️", key="Review_the_Tax_Forecast_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar13.progress(percent_complete + 1,
+                                                      text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button13 = 1
+                                my_bar13.success('The Process has completed successfully!', icon="✅")
                     with st.container(border=True, height=600):
                         st.subheader("PeriodClose -3", divider='rainbow')
                         # First Button
@@ -833,6 +915,21 @@ def main():
                 # Second horizontal layout
                 with col2:
                     # Create a container for the buttons
+                    with st.container(border=True, height=260):
+                        st.subheader("Workday -2", divider='rainbow')
+                        st.markdown(":grey-background[**Revenue and Margin forecasted entries in Adaptive**]")
+                        if st.session_state.button14 == 1 or st.session_state.master_button == 0:
+                            st.success('The Process has completed successfully!', icon="✅")
+                            st.button("RUN ▶️", key="WD_2_RERUN", disabled=True)
+                        else:
+                            my_bar14 = st.info("Process yet to be Start", icon="ℹ️")
+                            if st.button("RUN ▶️", key="WD_2_RUN"):
+                                for percent_complete in range(100):
+                                    time.sleep(0.05)
+                                    my_bar14.progress(percent_complete + 1,
+                                                      text="Operation is in progress. Please wait for sometime...")
+                                st.session_state.button14 = 1
+                                my_bar14.success('The Process has completed successfully!', icon="✅")
                     with st.container(border=True, height=600):
                         st.subheader("PeriodClose -2", divider='rainbow')
                         # First Button
@@ -939,6 +1036,21 @@ def main():
 
                     # Third horizontal layout
                     with col3:
+                        with st.container(border=True, height=260):
+                            st.subheader("Workday -1", divider='rainbow')
+                            st.markdown(":grey-background[**Update Margin analysis for Tax provision**]")
+                            if st.session_state.button15 == 1 or st.session_state.master_button == 0:
+                                st.success('The Process has completed successfully!', icon="✅")
+                                st.button("RUN ▶️", key="WD_1_RERUN", disabled=True)
+                            else:
+                                my_bar15 = st.info("Process yet to be Start", icon="ℹ️")
+                                if st.button("RUN ▶️", key="WD_1_RUN"):
+                                    for percent_complete in range(100):
+                                        time.sleep(0.05)
+                                        my_bar15.progress(percent_complete + 1,
+                                                          text="Operation is in progress. Please wait for sometime...")
+                                    st.session_state.button15 = 1
+                                    my_bar15.success('The Process has completed successfully!', icon="✅")
                         with st.container(border=True, height=600):
                             st.subheader("PeriodClose -1", divider='rainbow')
                             # First Button
