@@ -445,7 +445,7 @@ def main():
 
                 # Invoices WIP
                 invoices_WIP_qry = """SELECT
-                                    RELEVANT_PERIOD,
+                                    RELEVANT_PERIOD AS PERIOD,
                                     TYPE_OF_INVOICES,
                                     TOTAL_COUNT,
                                     '$ '||AMOUNT AS AMOUNT,
@@ -454,7 +454,7 @@ def main():
 
                 # Unbilled Revenue
                 unbilled_revenue_qry = """SELECT
-                                        RELEVANT_PERIOD,
+                                        RELEVANT_PERIOD AS PERIOD,
                                         CUSTOMER,
                                         '$ '||AMOUNT AS AMOUNT,
                                         ACTION,
