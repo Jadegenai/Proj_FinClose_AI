@@ -506,39 +506,6 @@ def main():
                                 TAX.progress(st.session_state.TAX_Process,
                                              text=f"Tax  :  {st.session_state.TAX_Process}%")
 
-                with st.container(border=True, height=500):
-                    open_PO_result = run_sql_query(open_PO_qry)
-                    open_PO_df = pd.DataFrame(open_PO_result)
-                    open_PO_df.columns = open_PO_df.columns.str.replace('_', ' ')
-                    open_PO_headers = open_PO_df.columns
-                    st.subheader("Open Purchase Orders:", divider='rainbow')
-                    st.markdown(
-                        tabulate(open_PO_df, tablefmt="html", headers=open_PO_headers, floatfmt=".2f",
-                                 showindex=False),
-                        unsafe_allow_html=True)
-
-                with st.container(border=True, height=420):
-                    invoices_WIP_result = run_sql_query(invoices_WIP_qry)
-                    invoices_WIP_df = pd.DataFrame(invoices_WIP_result)
-                    invoices_WIP_df.columns = invoices_WIP_df.columns.str.replace('_', ' ')
-                    invoices_WIP_headers = invoices_WIP_df.columns
-                    st.subheader("Invoices Work in Progress:", divider='rainbow')
-                    st.markdown(
-                        tabulate(invoices_WIP_df, tablefmt="html", headers=invoices_WIP_headers, floatfmt=".2f",
-                                 showindex=False),
-                        unsafe_allow_html=True)
-
-                with st.container(border=True, height=420):
-                    unbilled_revenue_result = run_sql_query(unbilled_revenue_qry)
-                    unbilled_revenue_df = pd.DataFrame(unbilled_revenue_result)
-                    unbilled_revenue_df.columns = unbilled_revenue_df.columns.str.replace('_', ' ')
-                    unbilled_revenue_headers = unbilled_revenue_df.columns
-                    st.subheader("Unbilled Revenue:", divider='rainbow')
-                    st.markdown(
-                        tabulate(unbilled_revenue_df, tablefmt="html", headers=unbilled_revenue_headers,
-                                 floatfmt=".2f", showindex=False),
-                        unsafe_allow_html=True)
-
                 col = st.columns(3, gap='medium')
                 # First Column
                 with col[0]:
@@ -616,29 +583,6 @@ def main():
                                  )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
-                    # # DSO Data
-                    # st.subheader("Days Sales Outstanding:", divider='rainbow')
-                    # # Metric Graph
-                    # curr_dso_df = \
-                    #     dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == month_selected)][
-                    #         'DSO AMOUNT'].to_frame().reset_index(drop=True)
-                    # curr_dso_data = curr_dso_df.loc[0, 'DSO AMOUNT']
-                    # prev_dso_df = \
-                    #     dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == prev_month)][
-                    #         'DSO AMOUNT'].to_frame().reset_index(drop=True)
-                    # prev_dso_data = prev_dso_df.loc[0, 'DSO AMOUNT']
-                    # dso_data_diff = str(round((((curr_dso_data - prev_dso_data) / prev_dso_data) * 100), 2)) + '%'
-                    # st.metric(label=str(year_selected) + " " + str(month_selected),
-                    #           value=curr_dso_data,
-                    #           delta=dso_data_diff)
-                    # # Bar Graph
-                    # fig = px.bar(dso_df,
-                    #              x=dso_df.columns[2],
-                    #              y=dso_df.columns[3],
-                    #              # color=df_margin.columns[3]
-                    #              )
-                    # st.plotly_chart(fig, width=0, height=300, use_container_width=True)
-
                 with col[2]:
                     # Margin Data
                     st.subheader("Margin:", divider='rainbow')
@@ -655,6 +599,39 @@ def main():
                                  # color=df_margin.columns[1]
                                  )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
+
+                with st.container(border=True, height=400):
+                    open_PO_result = run_sql_query(open_PO_qry)
+                    open_PO_df = pd.DataFrame(open_PO_result)
+                    open_PO_df.columns = open_PO_df.columns.str.replace('_', ' ')
+                    open_PO_headers = open_PO_df.columns
+                    st.subheader("Open Purchase Orders:", divider='rainbow')
+                    st.markdown(
+                        tabulate(open_PO_df, tablefmt="html", headers=open_PO_headers, floatfmt=".2f",
+                                 showindex=False),
+                        unsafe_allow_html=True)
+
+                with st.container(border=True, height=400):
+                    invoices_WIP_result = run_sql_query(invoices_WIP_qry)
+                    invoices_WIP_df = pd.DataFrame(invoices_WIP_result)
+                    invoices_WIP_df.columns = invoices_WIP_df.columns.str.replace('_', ' ')
+                    invoices_WIP_headers = invoices_WIP_df.columns
+                    st.subheader("Invoices Work in Progress:", divider='rainbow')
+                    st.markdown(
+                        tabulate(invoices_WIP_df, tablefmt="html", headers=invoices_WIP_headers, floatfmt=".2f",
+                                 showindex=False),
+                        unsafe_allow_html=True)
+
+                with st.container(border=True, height=400):
+                    unbilled_revenue_result = run_sql_query(unbilled_revenue_qry)
+                    unbilled_revenue_df = pd.DataFrame(unbilled_revenue_result)
+                    unbilled_revenue_df.columns = unbilled_revenue_df.columns.str.replace('_', ' ')
+                    unbilled_revenue_headers = unbilled_revenue_df.columns
+                    st.subheader("Unbilled Revenue:", divider='rainbow')
+                    st.markdown(
+                        tabulate(unbilled_revenue_df, tablefmt="html", headers=unbilled_revenue_headers,
+                                 floatfmt=".2f", showindex=False),
+                        unsafe_allow_html=True)
 
             elif select_source == 'Query Financial Data':
                 ### Setup the Home Page
