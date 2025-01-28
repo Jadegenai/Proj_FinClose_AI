@@ -16,10 +16,10 @@ from dotenv import load_dotenv
 import pandas as pd
 import streamlit as st
 from langchain.prompts import PromptTemplate
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain_community.chat_models import ChatOpenAI
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain.prompts.example_selector import SemanticSimilarityExampleSelector
 import snowflake.connector
 from langchain.chains import RetrievalQA
@@ -431,19 +431,24 @@ def main():
                 dso_df.columns = dso_df.columns.str.replace('_', ' ')
 
                 # Open PO
-                open_PO_qry = """SELECT
-                                    RELEVANT_PERIOD,
-                                    NUMBER_OF_POS,
-                                    TOTAL_AMOUNT,
-                                    ACTION
-                                FROM DEMO_DB.SC_FINCLOSE.OPEN_PURCHASE_ORDERS;"""
+                open_PO_qry = """SELECT 
+                                    SEGMENT1,
+                                    PO_CREATION_DATE,
+                                    PO_STATUS,
+                                    VENDOR_NAME,
+                                    TYPE_LOOKUP_CODE,
+                                    AUTHORIZATION_STATUS,
+                                    '$ '||TOTAL_AMOUNT AS TOTAL_AMOUNT
+                                FROM DEMO_DB.SC_FINCLOSE.PURCHASE_ORDERS
+                                WHERE PO_STATUS = 'OPEN'
+                                LIMIT 100"""
 
                 # Invoices WIP
                 invoices_WIP_qry = """SELECT
                                     RELEVANT_PERIOD,
                                     TYPE_OF_INVOICES,
                                     TOTAL_COUNT,
-                                    AMOUNT,
+                                    '$ '||AMOUNT AS AMOUNT,
                                     ACTION
                                 FROM DEMO_DB.SC_FINCLOSE.INVOICES_WORK_IN_PROGRESS;"""
 
@@ -451,7 +456,7 @@ def main():
                 unbilled_revenue_qry = """SELECT
                                         RELEVANT_PERIOD,
                                         CUSTOMER,
-                                        AMOUNT,
+                                        '$ '||AMOUNT AS AMOUNT,
                                         ACTION,
                                         COMMENTS
                                     FROM DEMO_DB.SC_FINCLOSE.UNBILLED_REVENUE;"""
@@ -501,40 +506,38 @@ def main():
                                 TAX.progress(st.session_state.TAX_Process,
                                              text=f"Tax  :  {st.session_state.TAX_Process}%")
 
-                col2 = st.columns(3, gap='medium')
-                with col2[0]:
-                    with st.container(border=True, height=400):
-                        open_PO_result = run_sql_query(open_PO_qry)
-                        open_PO_df = pd.DataFrame(open_PO_result)
-                        open_PO_df.columns = open_PO_df.columns.str.replace('_', ' ')
-                        open_PO_headers = open_PO_df.columns
-                        st.subheader("Open Purchase Orders:", divider='rainbow')
-                        st.markdown(
-                            tabulate(open_PO_df, tablefmt="html", headers=open_PO_headers, floatfmt=".2f",
-                                     showindex=False),
-                            unsafe_allow_html=True)
-                with col2[1]:
-                    with st.container(border=True, height=400):
-                        invoices_WIP_result = run_sql_query(invoices_WIP_qry)
-                        invoices_WIP_df = pd.DataFrame(invoices_WIP_result)
-                        invoices_WIP_df.columns = invoices_WIP_df.columns.str.replace('_', ' ')
-                        invoices_WIP_headers = invoices_WIP_df.columns
-                        st.subheader("Invoices Work in Progress:", divider='rainbow')
-                        st.markdown(
-                            tabulate(invoices_WIP_df, tablefmt="html", headers=invoices_WIP_headers, floatfmt=".2f",
-                                     showindex=False),
-                            unsafe_allow_html=True)
-                with col2[2]:
-                    with st.container(border=True, height=400):
-                        unbilled_revenue_result = run_sql_query(unbilled_revenue_qry)
-                        unbilled_revenue_df = pd.DataFrame(unbilled_revenue_result)
-                        unbilled_revenue_df.columns = unbilled_revenue_df.columns.str.replace('_', ' ')
-                        unbilled_revenue_headers = unbilled_revenue_df.columns
-                        st.subheader("Unbilled Revenue:", divider='rainbow')
-                        st.markdown(
-                            tabulate(unbilled_revenue_df, tablefmt="html", headers=unbilled_revenue_headers,
-                                     floatfmt=".2f", showindex=False),
-                            unsafe_allow_html=True)
+                with st.container(border=True, height=500):
+                    open_PO_result = run_sql_query(open_PO_qry)
+                    open_PO_df = pd.DataFrame(open_PO_result)
+                    open_PO_df.columns = open_PO_df.columns.str.replace('_', ' ')
+                    open_PO_headers = open_PO_df.columns
+                    st.subheader("Open Purchase Orders:", divider='rainbow')
+                    st.markdown(
+                        tabulate(open_PO_df, tablefmt="html", headers=open_PO_headers, floatfmt=".2f",
+                                 showindex=False),
+                        unsafe_allow_html=True)
+
+                with st.container(border=True, height=420):
+                    invoices_WIP_result = run_sql_query(invoices_WIP_qry)
+                    invoices_WIP_df = pd.DataFrame(invoices_WIP_result)
+                    invoices_WIP_df.columns = invoices_WIP_df.columns.str.replace('_', ' ')
+                    invoices_WIP_headers = invoices_WIP_df.columns
+                    st.subheader("Invoices Work in Progress:", divider='rainbow')
+                    st.markdown(
+                        tabulate(invoices_WIP_df, tablefmt="html", headers=invoices_WIP_headers, floatfmt=".2f",
+                                 showindex=False),
+                        unsafe_allow_html=True)
+
+                with st.container(border=True, height=420):
+                    unbilled_revenue_result = run_sql_query(unbilled_revenue_qry)
+                    unbilled_revenue_df = pd.DataFrame(unbilled_revenue_result)
+                    unbilled_revenue_df.columns = unbilled_revenue_df.columns.str.replace('_', ' ')
+                    unbilled_revenue_headers = unbilled_revenue_df.columns
+                    st.subheader("Unbilled Revenue:", divider='rainbow')
+                    st.markdown(
+                        tabulate(unbilled_revenue_df, tablefmt="html", headers=unbilled_revenue_headers,
+                                 floatfmt=".2f", showindex=False),
+                        unsafe_allow_html=True)
 
                 col = st.columns(3, gap='medium')
                 # First Column
@@ -613,28 +616,28 @@ def main():
                                  )
                     st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
-                    # DSO Data
-                    st.subheader("Days Sales Outstanding:", divider='rainbow')
-                    # Metric Graph
-                    curr_dso_df = \
-                        dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == month_selected)][
-                            'DSO AMOUNT'].to_frame().reset_index(drop=True)
-                    curr_dso_data = curr_dso_df.loc[0, 'DSO AMOUNT']
-                    prev_dso_df = \
-                        dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == prev_month)][
-                            'DSO AMOUNT'].to_frame().reset_index(drop=True)
-                    prev_dso_data = prev_dso_df.loc[0, 'DSO AMOUNT']
-                    dso_data_diff = str(round((((curr_dso_data - prev_dso_data) / prev_dso_data) * 100), 2)) + '%'
-                    st.metric(label=str(year_selected) + " " + str(month_selected),
-                              value=curr_dso_data,
-                              delta=dso_data_diff)
-                    # Bar Graph
-                    fig = px.bar(dso_df,
-                                 x=dso_df.columns[2],
-                                 y=dso_df.columns[3],
-                                 # color=df_margin.columns[3]
-                                 )
-                    st.plotly_chart(fig, width=0, height=300, use_container_width=True)
+                    # # DSO Data
+                    # st.subheader("Days Sales Outstanding:", divider='rainbow')
+                    # # Metric Graph
+                    # curr_dso_df = \
+                    #     dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == month_selected)][
+                    #         'DSO AMOUNT'].to_frame().reset_index(drop=True)
+                    # curr_dso_data = curr_dso_df.loc[0, 'DSO AMOUNT']
+                    # prev_dso_df = \
+                    #     dso_df[(dso_df['PERIOD YEAR'] == year_selected) & (dso_df['PERIOD MONTH'] == prev_month)][
+                    #         'DSO AMOUNT'].to_frame().reset_index(drop=True)
+                    # prev_dso_data = prev_dso_df.loc[0, 'DSO AMOUNT']
+                    # dso_data_diff = str(round((((curr_dso_data - prev_dso_data) / prev_dso_data) * 100), 2)) + '%'
+                    # st.metric(label=str(year_selected) + " " + str(month_selected),
+                    #           value=curr_dso_data,
+                    #           delta=dso_data_diff)
+                    # # Bar Graph
+                    # fig = px.bar(dso_df,
+                    #              x=dso_df.columns[2],
+                    #              y=dso_df.columns[3],
+                    #              # color=df_margin.columns[3]
+                    #              )
+                    # st.plotly_chart(fig, width=0, height=300, use_container_width=True)
 
                 with col[2]:
                     # Margin Data
@@ -824,23 +827,19 @@ def main():
                         st.markdown(":grey-background[**Review the Tax Forecast**]")
                         if st.session_state.button13 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Review_the_Tax_Forecast_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="13_1", value=1, disabled=True)
                         else:
                             my_bar13 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Review_the_Tax_Forecast_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar13.progress(percent_complete + 1,
-                                                      text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="13_2"):
                                 st.session_state.button13 = 1
                                 my_bar13.success('The Process has completed successfully!', icon="✅")
                         st.markdown(":grey-background[**Create Accounting**]")
                         if st.session_state.button1 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Create_Accounting_RERUN", disabled=True)
+                            st.button("RUN 🤖", key="Create_Accounting_RERUN", disabled=True)
                         else:
                             my_bar1 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Create_Accounting_RUN"):
+                            if st.button("RUN 🤖", key="Create_Accounting_RUN"):
                                 st.session_state.button1 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Create Accounting')
                                 st.session_state.OverallProcess += 8.33
@@ -864,23 +863,19 @@ def main():
                         st.markdown(":grey-background[**Update Margin analysis for Tax provision**]")
                         if st.session_state.button15 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="WD_1_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="15_1", value=1, disabled=True)
                         else:
                             my_bar15 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="WD_1_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar15.progress(percent_complete + 1,
-                                                      text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="15_2"):
                                 st.session_state.button15 = 1
                                 my_bar15.success('The Process has completed successfully!', icon="✅")
                         st.markdown(":grey-background[**GL Transfer**]")
                         if st.session_state.button2 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="GL_Transfer_RERUN", disabled=True)
+                            st.button("RUN 🤖", key="GL_Transfer_RERUN", disabled=True)
                         else:
                             my_bar2 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="GL_Transfer_RUN"):
+                            if st.button("RUN 🤖", key="GL_Transfer_RUN"):
                                 st.session_state.button2 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('GL Transfer')
                                 st.session_state.OverallProcess += 8.33
@@ -902,10 +897,10 @@ def main():
                         st.markdown(":grey-background[**Trial Balance Report**]")
                         if st.session_state.button3 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Trial_Balance_Report_RERUN", disabled=True)
+                            st.button("RUN 🤖", key="Trial_Balance_Report_RERUN", disabled=True)
                         else:
                             my_bar3 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Trial_Balance_Report_RUN"):
+                            if st.button("RUN 🤖", key="Trial_Balance_Report_RUN"):
                                 st.session_state.button3 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Trial Balance Report')
                                 st.session_state.OverallProcess += 8.34
@@ -932,23 +927,19 @@ def main():
                         st.markdown(":grey-background[**Revenue and Margin forecasted entries in Adaptive**]")
                         if st.session_state.button14 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="WD_2_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="14_1", value=1, disabled=True)
                         else:
                             my_bar14 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="WD_2_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar14.progress(percent_complete + 1,
-                                                      text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="14_2"):
                                 st.session_state.button14 = 1
                                 my_bar14.success('The Process has completed successfully!', icon="✅")
                         st.markdown(":grey-background[**Accounting Reconciliation**]")
                         if st.session_state.button4 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Accounting_Reconciliation_RERUN", disabled=True)
+                            st.button("RUN 🤖", key="Accounting_Reconciliation_RERUN", disabled=True)
                         else:
                             my_bar4 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Accounting_Reconciliation_RUN"):
+                            if st.button("RUN 🤖", key="Accounting_Reconciliation_RUN"):
                                 st.session_state.button4 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Reconciliation')
                                 st.session_state.OverallProcess += 8.33
@@ -969,14 +960,10 @@ def main():
                         st.markdown(":grey-background[**IT Accrual check**]")
                         if st.session_state.button5 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="IT_Accrual_check_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="5_1", value=1, disabled=True)
                         else:
                             my_bar5 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="IT_Accrual_check_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar5.progress(percent_complete + 1,
-                                                     text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="5_2"):
                                 st.session_state.button5 = 1
                                 st.session_state.OverallProcess += 8.33
                                 st.session_state.AR_Process += 25
@@ -988,14 +975,10 @@ def main():
                         st.markdown(":grey-background[**Inventory Recon**]")
                         if st.session_state.button6 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Inventory_Recon_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="6_1", value=1, disabled=True)
                         else:
                             my_bar6 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Inventory_Recon_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar6.progress(percent_complete + 1,
-                                                     text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="6_2"):
                                 st.session_state.button6 = 1
                                 st.session_state.OverallProcess += 8.34
                                 st.session_state.AR_Process += 25
@@ -1005,10 +988,10 @@ def main():
                         st.markdown(":grey-background[**Invoice Aging Check**]")
                         if st.session_state.button7 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Invoice_Aging_Check_RERUN", disabled=True)
+                            st.button("RUN 🤖", key="Invoice_Aging_Check_RERUN", disabled=True)
                         else:
                             my_bar7 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Invoice_Aging_Check_RUN"):
+                            if st.button("RUN 🤖", key="Invoice_Aging_Check_RUN"):
                                 st.session_state.button7 = 1
                                 UiPath_API_Queue_Load.add_data_to_queue('Invoice Aging')
                                 st.session_state.OverallProcess += 8.33
@@ -1030,14 +1013,10 @@ def main():
                         st.markdown(":grey-background[**Tax and Treasury Analysis**]")
                         if st.session_state.button8 == 1 or st.session_state.master_button == 0:
                             st.success('The Process has completed successfully!', icon="✅")
-                            st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RERUN", disabled=True)
+                            st.toggle("Mark the Process as Complete", key="8_1", value=1, disabled=True)
                         else:
                             my_bar8 = st.info("Process yet to be Start", icon="ℹ️")
-                            if st.button("RUN ▶️", key="Tax_and_Treasury_Analysis_RUN"):
-                                for percent_complete in range(100):
-                                    time.sleep(0.05)
-                                    my_bar8.progress(percent_complete + 1,
-                                                     text="Operation is in progress. Please wait for sometime...")
+                            if st.toggle("Mark the Process as Complete", key="8_2"):
                                 st.session_state.button8 = 1
                                 st.session_state.OverallProcess += 8.33
                                 st.session_state.AR_Process += 25
@@ -1051,14 +1030,10 @@ def main():
                             st.markdown(":grey-background[**Open PO and GL period**]")
                             if st.session_state.button9 == 1 or st.session_state.master_button == 0:
                                 st.success('The Process has completed successfully!', icon="✅")
-                                st.button("RUN ▶️", key="Open_PO_and_GL_period_RERUN", disabled=True)
+                                st.toggle("Mark the Process as Complete", key="9_1", value=1, disabled=True)
                             else:
                                 my_bar9 = st.info("Process yet to be Start", icon="ℹ️")
-                                if st.button("RUN ▶️", key="Open_PO_and_GL_period_RUN"):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar9.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                if st.toggle("Mark the Process as Complete", key="9_2"):
                                     st.session_state.button9 = 1
                                     st.session_state.OverallProcess += 8.34
                                     st.session_state.INV_Process += 100
@@ -1068,10 +1043,10 @@ def main():
                             st.markdown(":grey-background[**Unaccounted transaction check**]")
                             if st.session_state.button10 == 1 or st.session_state.master_button == 0:
                                 st.success('The Process has completed successfully!', icon="✅")
-                                st.button("RUN ▶️", key="Unaccounted_transaction_check_RERUN", disabled=True)
+                                st.button("RUN 🤖", key="Unaccounted_transaction_check_RERUN", disabled=True)
                             else:
                                 my_bar10 = st.info("Process yet to be Start", icon="ℹ️")
-                                if st.button("RUN ▶️", key="Unaccounted_transaction_check_RUN"):
+                                if st.button("RUN 🤖", key="Unaccounted_transaction_check_RUN"):
                                     st.session_state.button10 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Unaccounted Transaction Report')
                                     st.session_state.OverallProcess += 8.33
@@ -1093,10 +1068,10 @@ def main():
                             st.markdown(":grey-background[**Exception Correction**]")
                             if st.session_state.button11 == 1 or st.session_state.master_button == 0:
                                 st.success('The Process has completed successfully!', icon="✅")
-                                st.button("RUN ▶️", key="Exception_Correction_RERUN", disabled=True)
+                                st.button("RUN 🤖", key="Exception_Correction_RERUN", disabled=True)
                             else:
                                 my_bar11 = st.info("Process yet to be Start", icon="ℹ️")
-                                if st.button("RUN ▶️", key="Exception_Correction_RUN"):
+                                if st.button("RUN 🤖", key="Exception_Correction_RUN"):
                                     st.session_state.button11 = 1
                                     UiPath_API_Queue_Load.add_data_to_queue('Exception Processing')
                                     st.session_state.OverallProcess += 8.33
@@ -1120,14 +1095,10 @@ def main():
                             st.markdown(":grey-background[**Close Period**]")
                             if st.session_state.button12 == 1 or st.session_state.master_button == 0:
                                 st.success('The Process has completed successfully!', icon="✅")
-                                st.button("RUN ▶️", key="Close_Period_RERUN", disabled=True)
+                                st.toggle("Mark the Process as Complete", key="12_1", value=1, disabled=True)
                             else:
                                 my_bar12 = st.info("Process yet to be Start", icon="ℹ️")
-                                if st.button("RUN ▶️", key="Close_Period_RUN"):
-                                    for percent_complete in range(100):
-                                        time.sleep(0.05)
-                                        my_bar12.progress(percent_complete + 1,
-                                                          text="Operation is in progress. Please wait for sometime...")
+                                if st.toggle("Mark the Process as Complete", key="12_2"):
                                     st.session_state.button12 = 1
                                     st.session_state.OverallProcess += 8.34
                                     st.session_state.AP_Process += 25
